@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHL — Centre Hospitalier de Liège</title>
+<script>
+window.CHL_CONFIG = window.CHL_CONFIG || {
+  supabase:{
+    url:'https://sevrfgivcpefyykuffti.supabase.co',
+    anon:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNldnJmZ2l2Y3BlZnl5a3VmZnRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5NDI1NTMsImV4cCI6MjA3ODUxODU1M30.YZnkSHsVWKQEhfU7xYfWyTFmtkM28Zuzdu7Y1sjBXQc'
+  }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#1a2f6b;--navy-dark:#0d1a3a;--navy-mid:#16285a;--cyan:#00c2d4;--cyan-dark:#009aaa;--bg:#f0f4f8;--bg2:#e4eaf2;--bg3:#d8e0eb;--card:#ffffff;--text:#0d1a3a;--text2:#4a5568;--text3:#a0aec0;--border:#cbd5e0;--shadow:rgba(13,26,58,.09);--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--purple:#7c3aed;--input-bg:#fff;--radius:12px;--radius-sm:7px;--font:'Outfit',sans-serif;--mono:'JetBrains Mono',monospace;--sidebar-w:260px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--navy);border-radius:3px}
+input,select,textarea,button{font-family:var(--font)}
+body.dark-mode{--bg:#0f172a;--bg2:#1e293b;--bg3:#334155;--card:#1e293b;--text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;--border:#334155;--input-bg:#0f172a;--shadow:rgba(0,0,0,.5)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 2px 8px var(--shadow);overflow:hidden}
+.input{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text);font-size:.9em;font-family:var(--font);transition:border-color .2s}
+.input:focus{outline:none;border-color:var(--navy)}
+.table{width:100%;border-collapse:collapse;font-size:.85em}
+.table th,.table td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.table th{background:var(--navy);color:#fff;font-weight:600;font-size:.78em;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.table tr:last-child td{border-bottom:none}.table tr:hover td{background:var(--bg)}
+/* LOADING */
+#loadingScreen{position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,var(--navy-dark) 0%,var(--navy) 60%,#1a3a6b 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px}
+.loader-logo{animation:logoPulse 2s ease infinite}
+@keyframes logoPulse{0%,100%{filter:drop-shadow(0 0 20px rgba(0,194,212,.4))}50%{filter:drop-shadow(0 0 40px rgba(0,194,212,.8))}}
+.loader-title{color:#fff;font-size:1.3em;font-weight:700;text-align:center}.loader-sub{color:rgba(255,255,255,.45);font-size:.82em;text-align:center;text-transform:uppercase;letter-spacing:.5px}
+.ecg-wrapper{width:260px;height:50px;overflow:hidden}.ecg-line{width:200%;height:50px;animation:ecgScroll 2.5s linear infinite}
+@keyframes ecgScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.loader-progress-bar{width:240px;height:3px;background:rgba(255,255,255,.12);border-radius:2px;overflow:hidden}
+.loader-progress-fill{height:100%;background:linear-gradient(90deg,var(--cyan),#00e5ff);border-radius:2px;animation:progressFill 2s ease forwards}
+@keyframes progressFill{from{width:0}to{width:100%}}
+.loader-status{color:rgba(255,255,255,.5);font-size:.78em;font-family:var(--mono);animation:statusBlink 1.5s ease infinite}
+@keyframes statusBlink{0%,100%{opacity:.5}50%{opacity:1}}
+.loader-dots::after{content:'...';animation:dots 1.5s steps(4,end) infinite}
+@keyframes dots{0%,20%{content:'.'}40%{content:'..'}60%,100%{content:'...'}}
+/* AUTH */
+#authGate{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,var(--navy-dark),var(--navy),#1a3a6b);display:none;align-items:center;justify-content:center;padding:16px}
+#authGate.show{display:flex}
+.auth-box{background:rgba(255,255,255,.04);border:1px solid rgba(0,194,212,.2);border-radius:24px;padding:44px 40px;width:100%;max-width:460px;box-shadow:0 0 80px rgba(0,194,212,.12),0 24px 80px rgba(0,0,0,.7);backdrop-filter:blur(24px);animation:gateIn .4s ease}
+@keyframes gateIn{from{opacity:0;transform:translateY(28px) scale(.96)}to{opacity:1;transform:none}}
+.auth-brand{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:32px}
+.auth-brand h1{color:#fff;font-size:1.2em;font-weight:700;text-align:center}.auth-brand p{color:rgba(255,255,255,.4);font-size:.78em;text-align:center;text-transform:uppercase;letter-spacing:.8px}
+.auth-badge{display:flex;align-items:center;gap:8px;justify-content:center;background:rgba(0,194,212,.1);border:1px solid rgba(0,194,212,.25);border-radius:20px;padding:6px 16px;margin-bottom:24px;font-size:.74em;color:rgba(255,255,255,.55)}
+.auth-badge span{color:var(--cyan);font-weight:700}
+.auth-view{display:none}.auth-view.active{display:block}
+.auth-field{margin-bottom:15px}
+.auth-field label{display:block;font-size:.74em;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px}
+.auth-field input{width:100%;padding:12px 15px;background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);border-radius:var(--radius-sm);color:#fff;font-size:.95em;transition:border-color .2s}
+.auth-field input:focus{outline:none;border-color:rgba(0,194,212,.6);background:rgba(255,255,255,.1)}
+.auth-captcha{display:flex;align-items:center;gap:10px;margin-bottom:15px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-sm);padding:10px 14px}
+.auth-captcha-q{font-weight:700;font-family:var(--mono);color:#f59e0b;font-size:1.05em;flex:1}
+.auth-captcha input{width:72px!important;text-align:center;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:var(--radius-sm);padding:7px;color:#fff;font-family:var(--mono);font-size:.95em}
+.btn-auth{width:100%;padding:14px;background:linear-gradient(135deg,var(--cyan-dark),var(--cyan));color:var(--navy-dark);border:none;border-radius:var(--radius-sm);font-size:1em;cursor:pointer;font-weight:800;transition:all .2s;margin-bottom:12px}
+.btn-auth:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,194,212,.4)}.btn-auth:disabled{background:#444;color:#888;cursor:not-allowed;transform:none}
+.auth-links{text-align:center;font-size:.82em;color:rgba(255,255,255,.35)}.auth-links a{color:rgba(0,194,212,.85);cursor:pointer;text-decoration:underline}
+.auth-error{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.4);border-radius:var(--radius-sm);padding:10px 14px;font-size:.85em;color:#fca5a5;margin-bottom:12px;display:none;gap:8px;font-weight:600;align-items:center}.auth-error.show{display:flex}
+.auth-success{background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.4);border-radius:var(--radius-sm);padding:10px 14px;font-size:.85em;color:#6ee7b7;margin-bottom:12px;display:none;gap:8px;font-weight:600;align-items:center}.auth-success.show{display:flex}
+.lockout-bar{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:var(--radius-sm);padding:9px 14px;font-size:.8em;color:#fca5a5;margin-bottom:12px;text-align:center;display:none;font-family:var(--mono);font-weight:700}.lockout-bar.show{display:block}
+/* APP */
+#appContent{display:none;min-height:100vh}#appContent.show{display:flex}
+.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);height:100vh;position:sticky;top:0;background:linear-gradient(180deg,var(--navy-dark),var(--navy));display:flex;flex-direction:column;overflow:hidden;box-shadow:4px 0 20px rgba(13,26,58,.3);z-index:50;transition:width .3s}
+.sidebar.collapsed{width:64px;min-width:64px}
+.sidebar-brand{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:12px;overflow:hidden}
+.sidebar-brand-text h2{color:#fff;font-size:.92em;font-weight:700}.sidebar-brand-text p{color:rgba(255,255,255,.4);font-size:.68em;text-transform:uppercase;letter-spacing:.6px}
+.sidebar-nav{flex:1;overflow-y:auto;overflow-x:hidden;padding:10px 0}
+.sidebar-nav::-webkit-scrollbar{width:3px}.sidebar-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1)}
+.nav-section-label{padding:12px 20px 5px;font-size:.62em;font-weight:700;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:1.2px;white-space:nowrap;overflow:hidden}
+.sidebar.collapsed .nav-section-label{opacity:0}
+.nav-divider{height:1px;background:rgba(255,255,255,.07);margin:8px 16px}.sidebar.collapsed .nav-divider{margin:8px 10px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 20px;cursor:pointer;color:rgba(255,255,255,.6);font-size:.88em;font-weight:500;border-left:3px solid transparent;transition:all .2s;white-space:nowrap;overflow:hidden;position:relative}
+.sidebar.collapsed .nav-item{padding:10px;justify-content:center}.sidebar.collapsed .nav-label{display:none}
+.nav-item:hover{color:#fff;background:rgba(255,255,255,.06)}.nav-item.active{color:var(--cyan);background:rgba(0,194,212,.1);border-left-color:var(--cyan)}
+.nav-icon{font-size:1.1em;flex-shrink:0;width:20px;text-align:center}
+.nav-badge{background:var(--danger);color:#fff;font-size:.65em;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:auto}
+.sidebar-user{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px;overflow:hidden}.sidebar.collapsed .sidebar-user{padding:10px;justify-content:center}
+.user-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--cyan-dark),var(--cyan));display:flex;align-items:center;justify-content:center;color:var(--navy-dark);font-weight:700;font-size:.85em;flex-shrink:0}
+.user-name{color:#fff;font-size:.82em;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.user-role{font-size:.68em;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px}
+.sidebar.collapsed .user-info{display:none}
+.role-pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.65em;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.role-soignant{background:rgba(0,194,212,.2);color:var(--cyan)}.role-supervision{background:rgba(245,158,11,.2);color:#fbbf24}.role-direction{background:rgba(239,68,68,.2);color:#f87171}
+.main-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px var(--shadow);position:sticky;top:0;z-index:40;flex-shrink:0}
+.topbar-left{display:flex;align-items:center;gap:14px}.topbar-right{display:flex;align-items:center;gap:10px}
+.page-title{font-size:1.15em;font-weight:700;color:var(--text)}.page-breadcrumb{font-size:.8em;color:var(--text3);margin-top:1px}
+.topbar-btn{background:var(--bg);border:1px solid var(--border);color:var(--text2);padding:7px 14px;border-radius:var(--radius-sm);cursor:pointer;font-size:.82em;font-weight:600;transition:all .2s;display:flex;align-items:center;gap:6px}
+.topbar-btn:hover{background:var(--bg2)}
+.online-badge{display:flex;align-items:center;gap:6px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:20px;padding:5px 12px;font-size:.74em;font-weight:700;color:var(--success)}
+.online-dot{width:7px;height:7px;border-radius:50%;background:var(--success);animation:pulseDot 2s infinite}
+@keyframes pulseDot{0%,100%{opacity:1}50%{opacity:.4}}
+.offline-badge{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.2);color:var(--danger)}
+.session-bar{background:linear-gradient(90deg,#d97706,#f59e0b);color:#fff;padding:10px 28px;font-size:.83em;font-weight:700;display:none;align-items:center;justify-content:center;gap:14px;flex-shrink:0}
+.session-bar.show{display:flex}.session-bar button{background:rgba(255,255,255,.25);border:1px solid rgba(255,255,255,.5);color:#fff;padding:4px 14px;border-radius:20px;cursor:pointer;font-weight:700;font-size:.85em}
+.inactivity-statusbar{background:linear-gradient(90deg,#1e293b,#2a1a00);border-bottom:1px solid rgba(245,158,11,.2);padding:5px 28px;font-size:.74em;color:rgba(245,158,11,.7);font-family:var(--mono);display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-shrink:0}
+.inact-val{color:#f59e0b;font-weight:700}
+.content-area{flex:1;overflow-y:auto;padding:28px}
+/* INACTIVITY */
+#inactivityOverlay{position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(8px)}
+#inactivityOverlay.show{display:flex}
+.inact-box{background:var(--navy-dark);border:2px solid #f59e0b;border-radius:20px;padding:40px;width:100%;max-width:400px;text-align:center}
+.inact-countdown{font-size:2.5em;font-weight:700;font-family:var(--mono);color:#f59e0b;margin-bottom:24px;background:rgba(245,158,11,.1);border-radius:12px;padding:12px 0}
+.btn-stay{background:#f59e0b;color:#1a1a1a;border:none;border-radius:var(--radius-sm);padding:12px 28px;font-size:1em;font-weight:700;cursor:pointer;margin-right:10px}
+.btn-logout-now{background:rgba(255,255,255,.07);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.15);border-radius:var(--radius-sm);padding:12px 20px;font-size:.9em;cursor:pointer}
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px;margin-bottom:28px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px;display:flex;align-items:flex-start;gap:16px;box-shadow:0 2px 8px var(--shadow);transition:box-shadow .2s,transform .2s}
+.stat-card:hover{box-shadow:0 6px 20px var(--shadow);transform:translateY(-2px)}
+.stat-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4em;flex-shrink:0}
+.stat-info h3{font-size:1.9em;font-weight:800;line-height:1;margin-bottom:4px}.stat-info p{font-size:.8em;color:var(--text2);font-weight:500}.stat-info .stat-sub{font-size:.72em;color:var(--text3);margin-top:4px}
+.si-blue{background:rgba(26,47,107,.1);color:var(--navy)}.si-cyan{background:rgba(0,194,212,.1);color:var(--cyan-dark)}.si-green{background:rgba(16,185,129,.1);color:var(--success)}.si-orange{background:rgba(245,158,11,.1);color:var(--warning)}.si-red{background:rgba(239,68,68,.1);color:var(--danger)}.si-purple{background:rgba(124,58,237,.1);color:var(--purple)}
+/* FORMS */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.page-header h2{font-size:1.3em;font-weight:700;color:var(--text)}.page-header p{font-size:.85em;color:var(--text2);margin-top:3px}
+.section-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px;box-shadow:0 2px 8px var(--shadow);overflow:hidden}
+.section-head{background:var(--navy);color:#fff;padding:12px 18px;font-weight:700;font-size:.88em;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;transition:background .2s}
+.section-head:hover{background:var(--navy-mid)}.section-head .chev{transition:transform .25s;font-size:.75em}.section-head.collapsed .chev{transform:rotate(-90deg)}
+.section-body{padding:18px}.section-body.hidden{display:none}
+.form-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-end}
+.form-group{flex:1;min-width:180px}.form-group.sm{min-width:120px;flex:.6}.form-group.xs{min-width:90px;flex:.4}
+.form-group label{display:block;margin-bottom:5px;font-weight:600;font-size:.78em;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text);font-size:.9em;font-family:var(--font);transition:border-color .2s,box-shadow .2s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(26,47,107,.1)}
+.form-group textarea{resize:vertical;min-height:72px}
+.radio-group,.check-group{display:flex;gap:14px;flex-wrap:wrap;align-items:center;padding:5px 0}
+.radio-group label,.check-group label{display:flex;align-items:center;gap:6px;font-weight:500;cursor:pointer;font-size:.9em}
+input[type="checkbox"],input[type="radio"]{width:17px;height:17px;accent-color:var(--navy);cursor:pointer}
+/* BUTTONS */
+.btn{padding:10px 22px;border:none;border-radius:var(--radius-sm);cursor:pointer;font-weight:700;font-size:.88em;transition:all .2s;font-family:var(--font);display:inline-flex;align-items:center;gap:7px}
+.btn-primary{background:var(--navy);color:#fff}.btn-primary:hover{background:var(--navy-mid);transform:translateY(-1px);box-shadow:0 4px 14px rgba(26,47,107,.3)}.btn-primary:disabled{background:#aaa;cursor:not-allowed}
+.btn-cyan{background:var(--cyan);color:var(--navy-dark)}.btn-cyan:hover{background:var(--cyan-dark);transform:translateY(-1px)}
+.btn-success{background:var(--success);color:#fff}.btn-danger{background:var(--danger);color:#fff}.btn-warning{background:var(--warning);color:#fff}
+.btn-outline{background:transparent;color:var(--navy);border:1.5px solid var(--navy)}.btn-outline:hover{background:var(--navy);color:#fff}
+.btn-sm{padding:6px 14px;font-size:.8em}.btn-lg{padding:13px 28px;font-size:1em}
+.btn-ghost{background:var(--bg);color:var(--text2);border:1px solid var(--border)}.btn-ghost:hover{background:var(--bg2)}
+.actions-bar{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin:28px 0 8px}
+/* TABLE */
+.data-table{width:100%;border-collapse:collapse;font-size:.85em}
+.data-table th,.data-table td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.data-table th{background:var(--navy);color:#fff;font-weight:600;font-size:.78em;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.data-table tr:last-child td{border-bottom:none}.data-table tr:hover td{background:var(--bg)}
+.table-wrapper{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);box-shadow:0 2px 8px var(--shadow)}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.72em;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.badge-blue{background:rgba(26,47,107,.1);color:var(--navy)}.badge-cyan{background:rgba(0,194,212,.1);color:var(--cyan-dark)}.badge-green{background:rgba(16,185,129,.1);color:var(--success)}.badge-orange{background:rgba(245,158,11,.1);color:var(--warning)}.badge-red{background:rgba(239,68,68,.1);color:var(--danger)}.badge-purple{background:rgba(124,58,237,.1);color:var(--purple)}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:300;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(5px);animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-box{background:var(--card);border-radius:18px;width:100%;max-width:760px;max-height:92vh;overflow-y:auto;box-shadow:0 24px 80px rgba(0,0,0,.3);border:1px solid var(--border);animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-head{background:var(--navy);color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;border-radius:18px 18px 0 0;position:sticky;top:0;z-index:10}
+.modal-head h2{font-size:1em;font-weight:700}
+.modal-close{background:rgba(255,255,255,.2);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1.2em;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.modal-close:hover{background:rgba(255,255,255,.4)}
+.modal-body{padding:24px}.modal-section{margin-bottom:20px}
+.modal-section-title{font-weight:700;font-size:.78em;text-transform:uppercase;letter-spacing:.6px;color:var(--navy);margin-bottom:10px;padding-bottom:7px;border-bottom:2px solid var(--bg2)}
+.modal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.modal-field{background:var(--bg);border-radius:var(--radius-sm);padding:9px 13px}
+.modal-field .lbl{font-size:.7em;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.modal-field .val{font-size:.88em;font-weight:600;color:var(--text)}
+.modal-tag{background:rgba(26,47,107,.08);color:var(--navy);padding:3px 10px;border-radius:12px;font-size:.78em;font-weight:600;display:inline-block;margin:2px}
+/* URGENCE */
+.urgence-group{display:flex;gap:8px;flex-wrap:wrap}
+.urgence-pill{display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:20px;cursor:pointer;font-weight:700;font-size:.84em;border:2px solid transparent;transition:all .15s}
+.urgence-pill input{display:none}
+.u1{background:#fef2f2;color:#dc2626;border-color:#fca5a5}.u1.checked{background:#ef4444;color:#fff}
+.u2{background:#fffbeb;color:#d97706;border-color:#fcd34d}.u2.checked{background:#f59e0b;color:#fff}
+.u3{background:#f0fdf4;color:#16a34a;border-color:#86efac}.u3.checked{background:#22c55e;color:#fff}
+.u4{background:#eff6ff;color:#2563eb;border-color:#93c5fd}.u4.checked{background:#3b82f6;color:#fff}
+/* BODY SCHEMA */
+.body-schema-wrapper{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start;margin-top:12px}
+.bsvg-container{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:8px}
+.bsvg-container svg{max-width:200px;width:100%;cursor:pointer}
+.body-legend{flex:1;min-width:200px}
+.body-legend h4{font-size:.78em;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.lesion-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.lesion-chip{padding:4px 11px;border-radius:20px;font-size:.76em;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--bg);color:var(--text2);transition:all .15s}
+.lesion-chip.selected{box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.zone-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:.76em;font-weight:600;margin:3px;color:#fff}
+.zone-badge button{background:none;border:none;color:#fff;cursor:pointer;font-size:.9em;padding:0 2px;opacity:.8}
+.autre-lesion-box{display:none;margin-top:10px}.autre-lesion-box.visible{display:block}
+.autre-lesion-box label{font-size:.76em;font-weight:700;color:#3b82f6;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px}
+.autre-lesion-box input{width:100%;padding:8px 11px;border:1.5px solid #3b82f6;border-radius:var(--radius-sm);background:var(--input-bg);color:var(--text);font-size:.9em}
+/* MATERIEL */
+.mat-table{width:100%;border-collapse:collapse}
+.mat-table td{padding:6px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.mat-table td:first-child{font-size:.86em;font-weight:500}.mat-table td:last-child{width:130px}
+.qty-control{display:flex;align-items:center;gap:7px}
+.qty-btn{width:30px;height:30px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);border-radius:var(--radius-sm);cursor:pointer;font-size:1.1em;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.qty-btn:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
+.qty-val{min-width:32px;text-align:center;font-weight:700;font-family:var(--mono);font-size:.92em}.qty-val.nonzero{color:var(--navy)}
+/* BILAN TABLE */
+.bilan-table{width:100%;border-collapse:collapse;font-size:.76em}
+.bilan-table th,.bilan-table td{border:1px solid var(--border);padding:6px 4px;text-align:center;white-space:nowrap}
+.bilan-table th{background:var(--navy);color:#fff;font-weight:600;font-size:.78em}
+.bilan-table td:first-child{background:var(--bg2);font-weight:600;text-align:left;padding-left:10px;font-size:.83em}
+.bilan-table td.cell-checked{background:rgba(26,47,107,.08)}
+/* GLASGOW */
+.glasgow-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.glasgow-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.glasgow-card h4{font-size:.78em;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--bg2)}
+.glasgow-option{display:flex;align-items:center;justify-content:space-between;padding:5px 8px;border-radius:var(--radius-sm);cursor:pointer;transition:background .15s}
+.glasgow-option:hover{background:var(--bg2)}.glasgow-option label{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.87em;flex:1}
+.score-badge{background:var(--navy);color:#fff;padding:2px 8px;border-radius:10px;font-size:.74em;font-weight:700;font-family:var(--mono)}
+.glasgow-total{background:linear-gradient(135deg,var(--navy-dark),var(--navy));color:#fff;padding:14px 20px;border-radius:var(--radius);text-align:center;margin-top:14px}
+.glasgow-total .score-num{font-size:2.6em;font-weight:800;font-family:var(--mono)}.glasgow-total .score-label{font-size:.82em;opacity:.8}
+/* YN */
+.yn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-bottom:12px}
+.yn-item{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 13px;display:flex;align-items:center;justify-content:space-between}
+.yn-label{font-size:.87em;font-weight:600}.yn-btns{display:flex;gap:6px}
+.yn-btn{padding:3px 11px;border:1.5px solid var(--border);border-radius:14px;cursor:pointer;font-size:.76em;font-weight:700;background:var(--bg2);color:var(--text2);transition:all .15s;font-family:var(--font)}
+.yn-btn.yes.active{background:var(--success);color:#fff;border-color:var(--success)}.yn-btn.no.active{background:var(--danger);color:#fff;border-color:var(--danger)}
+/* EVOLUTION */
+.evolution-table-wrapper{overflow-x:auto;margin-top:10px}
+.evolution-table{border-collapse:collapse;font-size:.82em;min-width:600px}
+.evolution-table th,.evolution-table td{border:1.5px solid var(--border);padding:0;vertical-align:middle}
+.evolution-table th{background:var(--navy);color:#fff;font-weight:700;font-size:.78em;padding:6px 10px;white-space:nowrap;text-align:center}
+.evolution-table th:first-child{background:var(--bg2);color:var(--text2);text-align:left;min-width:140px;padding:6px 10px}
+.evolution-table td:first-child{background:var(--bg2);font-weight:600;font-size:.84em;padding:6px 10px;white-space:nowrap}
+.evolution-table td input{border:none;background:transparent;color:var(--text);font-family:var(--font);font-size:.88em;padding:5px 8px;width:100%;min-width:80px;text-align:center}
+.evolution-table td input:focus{outline:none;background:rgba(26,47,107,.06)}
+/* MISC */
+.soignant-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.soignant-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.soignant-header strong{font-size:.9em;color:var(--navy)}
+.btn-remove{background:var(--danger);color:#fff;border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:1em;display:flex;align-items:center;justify-content:center}
+.pathology-picker{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px}
+.pathology-picker h4{font-size:.82em;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.path-category{margin-bottom:14px}
+.path-cat-label{font-size:.8em;font-weight:700;padding:5px 10px;border-radius:20px;margin-bottom:8px;display:inline-flex;align-items:center;gap:6px}
+.path-chips{display:flex;flex-wrap:wrap;gap:6px}
+.path-chip{padding:4px 12px;border-radius:20px;font-size:.78em;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--text2);transition:all .15s;display:flex;align-items:center;gap:5px}
+.path-chip.selected{background:var(--navy);color:#fff;border-color:var(--navy)}
+.selected-paths{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.selected-path-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:.78em;font-weight:600;background:var(--navy);color:#fff}
+.selected-path-tag button{background:none;border:none;color:rgba(255,255,255,.7);cursor:pointer;font-size:.9em}
+.status-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;font-size:.75em;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.status-brouillon{background:rgba(107,114,128,.1);color:#6b7280}.status-soumis{background:rgba(59,130,246,.1);color:#3b82f6}.status-valide{background:rgba(16,185,129,.1);color:#10b981}.status-refuse{background:rgba(239,68,68,.1);color:#ef4444}
+.fiche-item{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:15px 18px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;transition:box-shadow .2s}
+.fiche-item:hover{box-shadow:0 4px 16px var(--shadow)}
+.fiche-item.border-valide{border-left:4px solid var(--success)}.fiche-item.border-soumis{border-left:4px solid #3b82f6}.fiche-item.border-refuse{border-left:4px solid var(--danger)}
+.fiche-info strong{color:var(--navy)}.fiche-info .fiche-meta{font-size:.8em;color:var(--text2);margin-top:3px}
+.fiche-btns{display:flex;gap:7px;flex-wrap:wrap}
+.saved-indicator{background:var(--success);color:#fff;border-radius:var(--radius);padding:9px 18px;font-size:.85em;font-weight:700;text-align:center;margin-bottom:14px;display:none}
+.saved-indicator.show{display:block}
+.toast{position:fixed;bottom:24px;right:24px;padding:13px 22px;border-radius:var(--radius);color:#fff;font-weight:600;z-index:9999;opacity:0;transition:opacity .3s,transform .3s;font-size:.86em;max-width:360px;transform:translateY(10px);box-shadow:0 8px 24px rgba(0,0,0,.2);display:flex;align-items:center;gap:8px}
+.toast.show{opacity:1;transform:translateY(0)}.toast.success{background:var(--success)}.toast.error{background:var(--danger)}.toast.info{background:var(--navy)}.toast.warning{background:var(--warning)}
+.search-bar{position:relative;max-width:320px}
+.search-bar input{width:100%;padding:9px 14px 9px 38px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--card);font-size:.88em}
+.search-bar input:focus{outline:none;border-color:var(--navy)}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+.pupilles-grid{display:flex;flex-wrap:wrap;gap:8px}
+.pupille-check{display:flex;align-items:center;gap:7px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 13px;cursor:pointer;font-size:.87em;font-weight:600}
+.pupille-check input{accent-color:var(--navy)}
+.aniso-side{display:none;gap:6px;align-items:center;margin-left:8px}.aniso-side.show{display:flex}
+.freq-grid{display:flex;flex-wrap:wrap;gap:8px}
+.freq-chip{display:flex;align-items:center;gap:7px;background:var(--bg);border:1.5px solid var(--border);border-radius:20px;padding:6px 16px;cursor:pointer;font-size:.87em;font-weight:700;transition:all .15s;font-family:var(--mono)}
+.freq-chip:has(input:checked){background:var(--navy);border-color:var(--navy);color:#fff}
+.freq-chip input{accent-color:var(--cyan);width:14px;height:14px}
+.motif-chip{display:flex;align-items:center;gap:6px;background:var(--bg);border:1.5px solid var(--border);border-radius:20px;padding:5px 12px;cursor:pointer;font-size:.8em;font-weight:600;transition:all .15s}
+.motif-chip input{accent-color:var(--navy);width:14px;height:14px}
+.motif-chip:has(input:checked){background:rgba(26,47,107,.08);border-color:var(--navy);color:var(--navy)}
+.arythmie-chip{display:flex;align-items:center;gap:6px;background:var(--bg);border:1.5px solid var(--border);border-radius:20px;padding:5px 12px;cursor:pointer;font-size:.8em;font-weight:600;transition:all .15s}
+.arythmie-chip:has(input:checked){background:rgba(239,68,68,.08);border-color:var(--danger);color:var(--danger)}
+.arythmie-chip input{width:14px;height:14px}
+.empty-state{text-align:center;padding:60px 24px;color:var(--text3)}
+.empty-state .es-icon{font-size:3.5em;margin-bottom:16px;opacity:.6}
+.empty-state h3{font-size:1.1em;color:var(--text2);margin-bottom:8px;font-weight:600}
+.empty-state p{font-size:.85em;line-height:1.6}
+.confirm-phrase{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-family:var(--mono);font-weight:700;color:var(--danger);font-size:.9em;text-align:center;margin-bottom:12px;letter-spacing:1px}
+.delete-steps{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
+.delete-step{display:flex;align-items:center;gap:9px;font-size:.82em;color:var(--text2)}
+.step-icon{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72em;font-weight:700;flex-shrink:0}
+.step-pending{background:var(--bg3);color:var(--text3)}.step-active{background:var(--warning);color:#fff}.step-done{background:var(--success);color:#fff}
+.fiche-indicator{background:linear-gradient(135deg,var(--cyan-dark),var(--cyan));color:var(--navy-dark);padding:9px 28px;font-size:.85em;font-weight:700;display:none;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
+.fiche-indicator.show{display:flex}
+.fiche-indicator .btn-back-main{background:rgba(13,26,58,.15);border:1px solid rgba(13,26,58,.3);color:var(--navy-dark);padding:5px 14px;border-radius:20px;cursor:pointer;font-size:.82em;font-weight:700;font-family:var(--font)}
+.medical-header-bar{background:linear-gradient(135deg,var(--navy-dark),var(--navy));color:#fff;padding:18px 22px;border-radius:var(--radius);margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
+.medical-header-bar h2{font-size:1.1em;font-weight:700}.medical-header-bar p{font-size:.85em;opacity:.8;margin-top:4px}
+@media(max-width:768px){.sidebar{position:fixed;left:-280px;transition:left .3s;z-index:200}.sidebar.mobile-open{left:0}.form-group{min-width:100%!important}.topbar{padding:0 16px}.content-area{padding:16px}.stats-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.stats-grid{grid-template-columns:1fr}.auth-box{padding:28px 20px}}
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+
+<!-- LOADING SCREEN -->
+<div id="loadingScreen">
+  <div class="loader-logo">
+    <svg width="90" height="90" viewBox="0 0 200 200" fill="none">
+      <path d="M 158 22 A 78 78 0 1 0 158 178" stroke="#1a2f6b" stroke-width="22" fill="none" stroke-linecap="round"/>
+      <line x1="159" y1="22" x2="159" y2="178" stroke="#1a2f6b" stroke-width="22" stroke-linecap="round"/>
+      <line x1="86" y1="42" x2="86" y2="158" stroke="#00c2d4" stroke-width="18" stroke-linecap="round"/>
+      <line x1="128" y1="42" x2="128" y2="158" stroke="#00c2d4" stroke-width="18" stroke-linecap="round"/>
+      <line x1="86" y1="100" x2="128" y2="100" stroke="#00c2d4" stroke-width="18" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <div><div class="loader-title">Centre Hospitalier de Liège</div><div class="loader-sub">Système de gestion hospitalière</div></div>
+  <div class="ecg-wrapper">
+    <svg class="ecg-line" viewBox="0 0 520 50"><path d="M0 25 L40 25 L55 8 L60 42 L65 8 L70 42 L75 25 L130 25 L145 8 L150 42 L155 8 L160 42 L165 25 L220 25 L235 8 L240 42 L245 8 L250 42 L255 25 L310 25 L325 8 L330 42 L335 8 L340 42 L345 25 L400 25 L415 8 L420 42 L425 8 L430 42 L435 25 L520 25" fill="none" stroke="#00c2d4" stroke-width="2.5" stroke-linecap="round"/></svg>
+  </div>
+  <div class="loader-progress-bar"><div class="loader-progress-fill"></div></div>
+  <div class="loader-status">Initialisation <span class="loader-dots"></span></div>
+</div>
+<!-- AUTH GATE -->
+<div id="authGate">
+  <div class="auth-box">
+    <div class="auth-brand">
+      <svg width="68" height="68" viewBox="0 0 200 200" fill="none"><path d="M 158 22 A 78 78 0 1 0 158 178" stroke="#1a2f6b" stroke-width="22" fill="none" stroke-linecap="round"/><line x1="159" y1="22" x2="159" y2="178" stroke="#1a2f6b" stroke-width="22" stroke-linecap="round"/><line x1="86" y1="42" x2="86" y2="158" stroke="#00c2d4" stroke-width="18" stroke-linecap="round"/><line x1="128" y1="42" x2="128" y2="158" stroke="#00c2d4" stroke-width="18" stroke-linecap="round"/><line x1="86" y1="100" x2="128" y2="100" stroke="#00c2d4" stroke-width="18" stroke-linecap="round"/></svg>
+      <h1>Centre Hospitalier de Liège</h1><p>Système de gestion hospitalière v1.0</p>
+    </div>
+    <div class="auth-badge">🔒 <span>Accès restreint</span> — Authentification requise</div>
+    <div id="loginView" class="auth-view active">
+      <div id="lockoutBar" class="lockout-bar"></div>
+      <div id="loginError" class="auth-error">⛔ <span id="loginErrorMsg"></span></div>
+      <div id="loginSuccess" class="auth-success">✅ <span id="loginSuccessMsg"></span></div>
+      <div class="auth-field"><label>E-mail</label><input type="email" id="loginEmail" autocomplete="email" placeholder="votre@chl.be"></div>
+      <div class="auth-field"><label>Mot de passe</label><input type="password" id="loginPass" autocomplete="current-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="auth-captcha">
+        <span class="auth-captcha-q" id="loginCaptchaQ"></span>
+        <span style="color:rgba(255,255,255,.4);font-size:1.2em;">=</span>
+        <input type="number" id="loginCaptchaA" placeholder="?" min="0" max="30" onkeydown="if(event.key==='Enter')doLogin()">
+        <span onclick="genLoginCaptcha()" style="cursor:pointer;color:rgba(255,255,255,.35);margin-left:4px;" title="Nouveau captcha">🔄</span>
+      </div>
+      <button class="btn-auth" id="btnLogin" onclick="doLogin()">🔐 Se connecter</button>
+      <div class="auth-links"><a onclick="switchAuthView('forgot')">Mot de passe oublié ?</a></div>
+      <div style="margin-top:14px;text-align:center;font-size:.78em;color:rgba(255,255,255,.35);">Comptes créés par la Direction.</div>
+    </div>
+    <div id="forgotView" class="auth-view">
+      <div id="forgotSuccess" class="auth-success">✅ <span id="forgotSuccessMsg"></span></div>
+      <p style="color:rgba(255,255,255,.4);font-size:.85em;margin-bottom:16px;">Entrez votre e-mail pour contacter la Direction.</p>
+      <div class="auth-field"><label>E-mail</label><input type="email" id="forgotEmail" placeholder="votre@chl.be"></div>
+      <button class="btn-auth" onclick="doForgot()">📧 Envoyer la demande</button>
+      <div class="auth-links"><a onclick="switchAuthView('login')">← Retour à la connexion</a></div>
+    </div>
+  </div>
+</div>
+<!-- INACTIVITY OVERLAY -->
+<div id="inactivityOverlay">
+  <div class="inact-box">
+    <div style="font-size:3em;margin-bottom:16px;">⏱️</div>
+    <h2 style="color:#fff;font-size:1.15em;font-weight:700;margin-bottom:10px;">Session inactive</h2>
+    <p style="color:rgba(255,255,255,.5);font-size:.88em;margin-bottom:20px;line-height:1.6;">Déconnexion automatique dans :</p>
+    <div class="inact-countdown" id="inactCountdown">0:30</div>
+    <div><button class="btn-stay" onclick="resetInactivity()">✋ Je suis là</button><button class="btn-logout-now" onclick="doLogout()">Déconnecter</button></div>
+  </div>
+</div>
+<!-- DELETE MODAL -->
+<div class="modal-overlay" id="deleteModal" style="display:none;" onclick="if(event.target===this)closeDeleteModal()">
+  <div class="modal-box" style="max-width:460px;">
+    <div class="modal-head" style="background:var(--danger);"><h2>🗑️ Suppression définitive</h2><button class="modal-close" onclick="closeDeleteModal()">×</button></div>
+    <div class="modal-body">
+      <p id="deleteDesc" style="font-size:.9em;color:var(--text2);margin-bottom:16px;line-height:1.6;"></p>
+      <div class="delete-steps" id="deleteSteps" style="display:none;">
+        <div class="delete-step"><div class="step-icon step-pending" id="ds1">1</div><span>Suppression données liées…</span></div>
+        <div class="delete-step"><div class="step-icon step-pending" id="ds2">2</div><span>Suppression enregistrement…</span></div>
+        <div class="delete-step"><div class="step-icon step-pending" id="ds3">3</div><span>Vérification et nettoyage…</span></div>
+      </div>
+      <div class="confirm-phrase" id="deletePhrase"></div>
+      <p style="font-size:.8em;color:var(--text2);margin-bottom:8px;">Tapez la phrase ci-dessus pour confirmer :</p>
+      <div class="form-group"><input type="text" id="deleteInput" placeholder="Tapez ici…" oninput="checkDeleteConfirm()"></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
+        <button class="btn btn-ghost" onclick="closeDeleteModal()">Annuler</button>
+        <button class="btn btn-danger" id="btnConfirmDelete" disabled onclick="executeDelete()">🗑️ Supprimer définitivement</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- VALIDATION MODAL -->
+<div class="modal-overlay" id="validationModal" style="display:none;" onclick="if(event.target===this)closeValidationModal()">
+  <div class="modal-box" style="max-width:500px;">
+    <div class="modal-head" id="valModalHead"><h2 id="valModalTitle">Valider la fiche</h2><button class="modal-close" onclick="closeValidationModal()">×</button></div>
+    <div class="modal-body">
+      <p id="valModalDesc" style="font-size:.9em;color:var(--text2);margin-bottom:16px;"></p>
+      <div class="form-group"><label>Commentaire (optionnel)</label><textarea id="valComment" rows="4" maxlength="1000"></textarea></div>
+      <div id="valRefusalReason" style="display:none;">
+        <div class="form-group"><label>Motif du refus <span style="color:var(--danger)">*</span></label><textarea id="valReason" rows="3" maxlength="500"></textarea></div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
+        <button class="btn btn-ghost" onclick="closeValidationModal()">Annuler</button>
+        <button class="btn" id="btnConfirmVal" onclick="executeValidation()">Confirmer</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- FICHE VIEWER MODAL -->
+<div class="modal-overlay" id="ficheViewModal" style="display:none;" onclick="if(event.target===this)closeFicheViewModal()">
+  <div class="modal-box" style="max-width:920px;">
+    <div class="modal-head" id="ficheViewHead" style="background:linear-gradient(135deg,var(--navy-dark),var(--navy));">
+      <h2 id="ficheViewTitle">Fiche Patient</h2>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button id="ficheViewPatBtn" style="display:none;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);color:#fff;padding:6px 14px;border-radius:20px;cursor:pointer;font-size:.82em;font-weight:700;" onclick="viewFiche(_ficheViewId)">👤 Patient</button>
+        <button id="ficheViewMedBtn" style="display:none;background:linear-gradient(135deg,var(--cyan-dark),var(--cyan));border:none;color:var(--navy-dark);padding:6px 14px;border-radius:20px;cursor:pointer;font-size:.82em;font-weight:800;" onclick="viewMedicalFiche(_ficheViewId)">🏥 Fiche Médicale</button>
+        <button id="ficheViewPdfBtn" style="background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.35);color:#fff;padding:6px 14px;border-radius:20px;cursor:pointer;font-size:.82em;font-weight:700;" onclick="exportFichePDF()">📄 PDF</button>
+        <button class="modal-close" onclick="closeFicheViewModal()">×</button>
+      </div>
+    </div>
+    <div class="modal-body" id="ficheViewBody"></div>
+  </div>
+</div>
+<!-- MAIN APP -->
+<div id="appContent">
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <svg width="36" height="36" viewBox="0 0 200 200" fill="none" style="flex-shrink:0"><path d="M 158 22 A 78 78 0 1 0 158 178" stroke="white" stroke-width="22" fill="none" stroke-linecap="round"/><line x1="159" y1="22" x2="159" y2="178" stroke="white" stroke-width="22" stroke-linecap="round"/><line x1="86" y1="42" x2="86" y2="158" stroke="#00c2d4" stroke-width="16" stroke-linecap="round"/><line x1="128" y1="42" x2="128" y2="158" stroke="#00c2d4" stroke-width="16" stroke-linecap="round"/><line x1="86" y1="100" x2="128" y2="100" stroke="#00c2d4" stroke-width="16" stroke-linecap="round"/></svg>
+      <div class="sidebar-brand-text"><h2>CHL</h2><p>Centre Hospitalier de Liège</p></div>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav">
+      <div class="nav-section-label">Principal</div>
+      <div class="nav-item active" data-view="dashboard"><span class="nav-icon">📊</span><span class="nav-label">Tableau de bord</span></div>
+      <div class="nav-item" data-view="patients"><span class="nav-icon">📋</span><span class="nav-label">Encodage Patient</span></div>
+      <div class="nav-item" data-view="fiches-list"><span class="nav-icon">📁</span><span class="nav-label">Mes Fiches</span><span class="nav-badge" id="pendingBadge" style="display:none;">0</span></div>
+      <div class="nav-item" data-view="dossiers"><span class="nav-icon">🗂️</span><span class="nav-label">Dossiers Médicaux</span></div>
+      <div class="nav-divider"></div>
+      <div class="nav-section-label">Documents</div>
+      <div class="nav-item" data-view="refus-soins"><span class="nav-icon">🚫</span><span class="nav-label">Refus de Soins</span></div>
+      <div class="nav-item" data-view="impayes"><span class="nav-icon">💸</span><span class="nav-label">Impayés</span></div>
+      <div class="nav-item" data-view="soins-police"><span class="nav-icon">🚔</span><span class="nav-label">Soins Police</span></div>
+      <div class="nav-item" data-view="mortuaire"><span class="nav-icon">⚰️</span><span class="nav-label">Mortuaire</span></div>
+      <div class="nav-item" data-view="certificats"><span class="nav-icon">📄</span><span class="nav-label">Certificats Travail</span></div>
+      <div class="nav-item" data-view="prise-service"><span class="nav-icon">⏰</span><span class="nav-label">Prise de Service</span></div>
+      <div class="nav-divider"></div>
+      <div class="nav-section-label">Médical</div>
+      <div class="nav-item" data-view="pathologies"><span class="nav-icon">🦠</span><span class="nav-label">Pathologies</span></div>
+      <div class="nav-item" data-view="protocoles"><span class="nav-icon">📋</span><span class="nav-label">Protocoles de Soin</span></div>
+      <div class="nav-item" data-view="tarifs"><span class="nav-icon">💰</span><span class="nav-label">Tarifs</span></div>
+      <div class="nav-divider"></div>
+      <div class="nav-section-label">Compte</div>
+      <div class="nav-item" data-view="compte"><span class="nav-icon">👤</span><span class="nav-label">Mon Compte</span></div>
+      <div class="nav-item" data-view="logs" id="navLogs" style="display:none;"><span class="nav-icon">📊</span><span class="nav-label">Logs Activité</span></div>
+      <div class="nav-item" data-view="admin" id="navAdmin" style="display:none;"><span class="nav-icon">⚙️</span><span class="nav-label">Administration</span></div>
+      <div class="nav-divider"></div>
+      <div class="nav-item" onclick="doLogout()"><span class="nav-icon">🚪</span><span class="nav-label">Déconnexion</span></div>
+    </nav>
+    <div class="sidebar-user">
+      <div class="user-avatar" id="userAvatar">?</div>
+      <div class="user-info"><div class="user-name" id="sidebarUserName">Chargement…</div><div class="user-role"><span class="role-pill" id="sidebarRolePill">—</span></div></div>
+    </div>
+  </div>
+  <div class="main-area">
+    <div class="session-bar" id="sessionBar">⚠️ Session expire dans <span id="sessionCountdown">5:00</span><button onclick="renewSession()">Renouveler</button><button onclick="doLogout()">Déconnecter</button></div>
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="topbar-btn" onclick="toggleSidebar()">☰</button>
+        <div><div class="page-title" id="pageTitle">Tableau de bord</div><div class="page-breadcrumb" id="pageBreadcrumb">CHL — Système hospitalier</div></div>
+      </div>
+      <div class="topbar-right">
+        <div class="online-badge" id="onlineStatusBadge"><div class="online-dot"></div> En ligne</div>
+        <button class="topbar-btn" onclick="toggleDark()" id="darkToggleBtn">🌙</button>
+        <button class="topbar-btn" onclick="doLogout()">🚪 Déconnexion</button>
+      </div>
+    </div>
+    <div class="inactivity-statusbar"><span>⏱️ Déconnexion auto après 30 min d'inactivité</span><span class="inact-val" id="inactDisplay">30:00</span></div>
+    <div class="fiche-indicator" id="ficheIndicator">🔵 Fiche médicale en cours
+      <button class="btn-back-main" onclick="switchToMainPatientForm()">↩ Retour à la fiche principale</button>
+    </div>
+    <div class="content-area" id="contentArea"></div>
+  </div>
+</div>
+
+<script>
+const SB_URL=CHL_CONFIG.supabase.url,SB_ANON=CHL_CONFIG.supabase.anon;
+const sb=supabase.createClient(SB_URL,SB_ANON);
+let _user=null,_profile=null,_appReady=false;
+let _sessionTimer=null,_sessionWarnTimer=null;
+let _inactTimer=null,_inactWarnTimer=null,_inactBarInterval=null,_inactWarnInterval=null,_inactOverlayShown=false,_inactStart=null;
+const INACT_MS=30*60*1000,INACT_WARN_MS=30*1000,SESS_MS=60*60*1000,SESS_WARN_MS=5*60*1000;
+let _ficheId=null,_medSaved=false,_ficheViewId=null;
+let _bodyData={},_bodyDataMed={},_activeLesion='Fracture',_activeLesionMed='Fracture';
+let _ynValues={},_evoColCount=0,_matValues={},_bilanBuilt=false,_matBuilt=false,_soignantCount=0;
+let _syncFromTable=false,_syncFromSchema=false;
+let _deleteFn=null,_deleteTarget=null,_validationAction=null,_validationTarget=null;
+let _selectedPathologies=[],_categories=[],_allPathologies=[];
+const LESION_COLORS={'Fracture':'#ef4444','Entorse':'#f97316','Contusion':'#a855f7','Brûlure':'#eab308','Piqûre':'#14b8a6','Autre':'#3b82f6'};
+const ZONE_IDS={'Tête':'zone_tete','Cervical':'zone_cervical','Colonne':'zone_colonne','MSD':'zone_msd','MSG':'zone_msg','Thorax':'zone_thorax','Abdo':'zone_abdo','Bassin':'zone_bassin','MID':'zone_mid','MIG':'zone_mig'};
+const MED_ZONE_IDS={'Tête':'mz_tete','Cervical':'mz_cervical','Thorax':'mz_thorax','Abdo':'mz_abdo','Bassin':'mz_bassin','MSD':'mz_msd','MSG':'mz_msg','MID':'mz_mid','MIG':'mz_mig'};
+const LESION_ID_MAP={'Fracture':'Fracture','Entorse':'Entorse','Contusion':'Contusion','Brûlure':'Brulure','Piqûre':'Piqure','Autre':'Autre'};
+const MATERIEL_ITEMS=['Attelle Zimmer','Attelle MI','Attelle MS','Bandage Triangulaire','Bandage crêpe 5cm','Bandage crêpe 7cm','Bandage crêpe 10cm','Bassin réuniforme','Coldpack','Collier Cervical','Compresse 5x5','Compresse 10x10','Couverture Alu','Crème antihistaminique','Crème antiseptique','Gant examen (paire)','Pansement individuel','Pansement à découper','Paracétamol 500mg','Patch DEA','Pocket Mask','Sparadrap (cm)'];
+const BILAN_ZONES=['Tête','Cervical','Colonne','MSD','MSG','Thorax','Abdo','Bassin','MID','MIG'];
+const BILAN_LESIONS=['Fracture','Entorse','Contusion','Brûlure','Piqûre','Autre'];
+
+function s(str){if(!str)return'';return String(str).replace(/[<>"'`;&]/g,c=>({'<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#x27;','`':'&#x60;',';':'&#x3B;','&':'&amp;'}[c]));}
+function toast(msg,type='info'){const t=document.getElementById('toast');t.innerHTML='<span>'+msg+'</span>';t.className='toast '+type+' show';clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),3800);}
+function fmtDate(d){if(!d)return'—';try{return new Date(d).toLocaleDateString('fr-BE');}catch{return d;}}
+function fmtDateTime(d){if(!d)return'—';try{return new Date(d).toLocaleString('fr-BE');}catch{return d;}}
+function getRadio(n){const e=document.querySelector('input[name="'+n+'"]:checked');return e?e.value:'';}
+function getChecked(id){return!!document.getElementById(id)?.checked;}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('collapsed');}
+function toggleDark(){document.body.classList.toggle('dark-mode');document.getElementById('darkToggleBtn').textContent=document.body.classList.contains('dark-mode')?'☀️':'🌙';localStorage.setItem('chl_dark',document.body.classList.contains('dark-mode')?'1':'0');}
+function updateOnlineStatus(){const el=document.getElementById('onlineStatusBadge');if(!el)return;if(navigator.onLine){el.className='online-badge';el.innerHTML='<div class="online-dot"></div> En ligne';}else{el.className='online-badge offline-badge';el.innerHTML='🔴 Hors ligne';}}
+window.addEventListener('online',updateOnlineStatus);window.addEventListener('offline',updateOnlineStatus);
+async function logAction(action,module,entityId,details){if(!_user||!_profile)return;try{await sb.from('chlencodage_app_logs').insert({user_id:_user.id,user_email:_user.email,user_role:_profile.role,action,module,entity_id:entityId,details});}catch{}}
+// CAPTCHA
+let _loginCaptcha={};
+function genLoginCaptcha(){const a=~~(Math.random()*10)+1,b=~~(Math.random()*10)+1;_loginCaptcha={a,b,ans:a+b};document.getElementById('loginCaptchaQ').textContent=a+' + '+b;document.getElementById('loginCaptchaA').value='';}
+// AUTH HELPERS
+function switchAuthView(v){['login','forgot'].forEach(id=>{const el=document.getElementById(id+'View');if(el)el.classList.remove('active');});document.getElementById(v+'View').classList.add('active');['loginError','loginSuccess','forgotSuccess'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('show');});}
+function showAuthError(divId,msg){const el=document.getElementById(divId);if(!el)return;el.classList.add('show');const sp=el.querySelector('span');if(sp)sp.textContent=msg;}
+function showAuthSuccess(divId,msg){const el=document.getElementById(divId);if(!el)return;el.classList.add('show');const sp=el.querySelector('span');if(sp)sp.textContent=msg;}
+// BRUTE FORCE
+function getAttempts(){try{return JSON.parse(localStorage.getItem('chl_att')||'{"c":0,"ts":0}');}catch{return{c:0,ts:0};}}
+function incAttempts(){const a=getAttempts();a.c++;a.ts=Date.now();localStorage.setItem('chl_att',JSON.stringify(a));}
+function resetAttempts(){localStorage.removeItem('chl_att');}
+function isLocked(){const a=getAttempts();if(a.c<5)return false;if(Date.now()-a.ts>15*60*1000){resetAttempts();return false;}return true;}
+function getLockRemaining(){const a=getAttempts();return Math.max(0,15*60*1000-(Date.now()-a.ts));}
+function showLockout(){const bar=document.getElementById('lockoutBar'),r=getLockRemaining();const m=Math.floor(r/60000),s2=Math.floor((r%60000)/1000);bar.textContent='🔒 Trop de tentatives — Réessayez dans '+m+':'+s2.toString().padStart(2,'0');bar.classList.add('show');document.getElementById('btnLogin').disabled=true;setTimeout(()=>{bar.classList.remove('show');document.getElementById('btnLogin').disabled=false;},r);}
+// SESSION STORAGE
+const SESSION_KEY='chl_session_v1';
+function saveSession(p){try{sessionStorage.setItem(SESSION_KEY,JSON.stringify({p,ts:Date.now()}));}catch{}}
+function readSession(){try{const r=JSON.parse(sessionStorage.getItem(SESSION_KEY)||'null');if(!r)return null;if(Date.now()-r.ts>60*60*1000){sessionStorage.removeItem(SESSION_KEY);return null;}return r.p;}catch{return null;}}
+function clearSession(){try{sessionStorage.removeItem(SESSION_KEY);}catch{}}
+// LOGIN
+async function doLogin(){
+  const errs=['loginError','loginSuccess','forgotSuccess'];errs.forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('show');});
+  if(isLocked()){showLockout();return;}
+  if(parseInt(document.getElementById('loginCaptchaA').value)!==_loginCaptcha.ans){showAuthError('loginError','Captcha incorrect.');genLoginCaptcha();incAttempts();return;}
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  if(!email||!pass){showAuthError('loginError','Veuillez remplir tous les champs.');return;}
+  const btn=document.getElementById('btnLogin');btn.disabled=true;btn.textContent='⏳ Connexion…';
+  const{data,error}=await sb.from('chlencodage_profiles').select('*').eq('email',email.toLowerCase()).maybeSingle();
+  btn.disabled=false;btn.textContent='🔐 Se connecter';
+  if(error||!data||data.password!==pass||!data.actif){
+    incAttempts();if(isLocked()){showLockout();return;}
+    const rem=5-getAttempts().c;
+    showAuthError('loginError','Identifiants incorrects.'+(rem>0?' '+rem+' tentative(s) restante(s).':''));
+    genLoginCaptcha();return;
+  }
+  resetAttempts();
+  const row={id:data.id,email:data.email,nom:data.nom,prenom:data.prenom,role:data.role,matricule:data.matricule,service:data.service,telephone:data.telephone,actif:data.actif,created_at:data.created_at};
+  _profile=row;_user={id:row.id,email:row.email};saveSession(row);await bootApp();
+}
+async function doForgot(){const email=document.getElementById('forgotEmail').value.trim();if(!email)return;showAuthSuccess('forgotSuccess','Demande transmise — la Direction réinitialisera le mot de passe pour '+email);}
+async function doLogout(){
+  clearTimeout(_sessionTimer);clearTimeout(_sessionWarnTimer);stopInactivity();
+  const sb_=document.getElementById('sessionBar');if(sb_)sb_.classList.remove('show');
+  clearSession();_user=null;_profile=null;_appReady=false;_ficheId=null;_medSaved=false;
+  document.getElementById('appContent').classList.remove('show');
+  document.getElementById('authGate').classList.add('show');
+  genLoginCaptcha();toast('Déconnecté avec succès 🔒','info');
+}
+// BOOT
+async function bootApp(){
+  document.getElementById('authGate').classList.remove('show');document.getElementById('appContent').classList.add('show');
+  if(!_appReady){
+    updateSidebarUser();setupNavigation();startSession();startInactivity();updateOnlineStatus();_appReady=true;
+    await loadPathologies();navigateTo('dashboard');
+    logAction('LOGIN','auth',null,{email:_user?.email});
+    toast('Bienvenue, '+(_profile?.prenom||'')+' '+(_profile?.nom||'')+' 👋','success');
+  }
+}
+function updateSidebarUser(){
+  if(!_profile)return;
+  const initials=(((_profile.prenom||'').charAt(0)+(_profile.nom||'').charAt(0))||'?').toUpperCase();
+  document.getElementById('userAvatar').textContent=initials;
+  document.getElementById('sidebarUserName').textContent=(_profile.prenom||'')+' '+(_profile.nom||'');
+  const rp=document.getElementById('sidebarRolePill');
+  const rLabels={soignant:'🩺 Soignant',supervision:'👁️ Supervision',direction:'⚙️ Direction'};
+  rp.textContent=rLabels[_profile.role]||_profile.role;rp.className='role-pill role-'+_profile.role;
+  if(_profile.role==='supervision'||_profile.role==='direction')document.getElementById('navLogs').style.display='';
+  if(_profile.role==='direction')document.getElementById('navAdmin').style.display='';
+}
+function setupNavigation(){document.querySelectorAll('.nav-item[data-view]').forEach(el=>{el.onclick=()=>navigateTo(el.dataset.view);});}
+// SESSION
+function startSession(){clearTimeout(_sessionTimer);clearTimeout(_sessionWarnTimer);_sessionWarnTimer=setTimeout(showSessionWarning,SESS_MS-SESS_WARN_MS);_sessionTimer=setTimeout(()=>{toast('Session expirée','error');doLogout();},SESS_MS);}
+function renewSession(){document.getElementById('sessionBar').classList.remove('show');startSession();toast('Session renouvelée ✅','success');}
+function showSessionWarning(){const bar=document.getElementById('sessionBar');bar.classList.add('show');let r=SESS_WARN_MS;const iv=setInterval(()=>{r-=1000;if(r<=0){clearInterval(iv);return;}const m=Math.floor(r/60000),s2=Math.floor((r%60000)/1000);document.getElementById('sessionCountdown').textContent=m+':'+s2.toString().padStart(2,'0');},1000);}
+// INACTIVITY
+function startInactivity(){clearTimeout(_inactTimer);clearTimeout(_inactWarnTimer);clearInterval(_inactWarnInterval);clearInterval(_inactBarInterval);_inactOverlayShown=false;hideInactOverlay();_inactStart=Date.now();_inactBarInterval=setInterval(()=>{if(!_user){clearInterval(_inactBarInterval);return;}const rem=Math.max(0,INACT_MS-(Date.now()-_inactStart));const m=Math.floor(rem/60000),s2=Math.floor((rem%60000)/1000);const el=document.getElementById('inactDisplay');if(el)el.textContent=m+':'+s2.toString().padStart(2,'0');},1000);_inactWarnTimer=setTimeout(()=>{_inactOverlayShown=true;showInactOverlay();},INACT_MS-INACT_WARN_MS);_inactTimer=setTimeout(()=>{toast('⏱️ Déconnecté pour inactivité','error');doLogout();},INACT_MS);}
+function showInactOverlay(){document.getElementById('inactivityOverlay').classList.add('show');let r=INACT_WARN_MS;clearInterval(_inactWarnInterval);_inactWarnInterval=setInterval(()=>{r-=1000;const m=Math.floor(r/60000),s2=Math.floor((r%60000)/1000);const el=document.getElementById('inactCountdown');if(el)el.textContent=m+':'+s2.toString().padStart(2,'0');if(r<=0)clearInterval(_inactWarnInterval);},1000);}
+function hideInactOverlay(){document.getElementById('inactivityOverlay').classList.remove('show');clearInterval(_inactWarnInterval);}
+function resetInactivity(){if(!_user)return;hideInactOverlay();startInactivity();}
+function stopInactivity(){clearTimeout(_inactTimer);clearTimeout(_inactWarnTimer);clearInterval(_inactWarnInterval);clearInterval(_inactBarInterval);hideInactOverlay();}
+// ROUTER
+const PAGE_TITLES={dashboard:'Tableau de bord',patients:'Encodage Patient','fiches-list':'Mes Fiches',dossiers:'Dossiers Médicaux','refus-soins':'Refus de Soins',impayes:'Impayés','soins-police':'Soins Police',mortuaire:'Mortuaire',certificats:'Certificats de Travail','prise-service':'Prise de Service',pathologies:'Pathologies',protocoles:'Protocoles de Soins',tarifs:'Tarifs',compte:'Mon Compte',logs:"Logs d'Activité",admin:'Administration','medical-form':'Fiche Médicale'};
+let _currentView='';
+function navigateTo(view){
+  _currentView=view;document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.view===view));
+  document.getElementById('pageTitle').textContent=PAGE_TITLES[view]||view;
+  document.getElementById('pageBreadcrumb').textContent='CHL — '+(PAGE_TITLES[view]||view);
+  document.getElementById('ficheIndicator').classList.remove('show');
+  const ca=document.getElementById('contentArea');
+  ca.innerHTML='<div style="text-align:center;padding:60px;color:var(--text3);"><div style="font-size:2em;margin-bottom:12px;">⏳</div>Chargement…</div>';
+  setTimeout(()=>renderView(view),80);
+}
+function renderView(v){
+  const ca=document.getElementById('contentArea');
+  switch(v){
+    case 'dashboard':    ca.innerHTML=renderDashboard();loadDashboardStats();break;
+    case 'patients':     ca.innerHTML=renderPatientForm();initPatientForm();break;
+    case 'fiches-list':  ca.innerHTML=renderFichesList();loadFichesList();break;
+    case 'dossiers':     ca.innerHTML=renderDossiers();loadDossiers();break;
+    case 'refus-soins':  ca.innerHTML=renderRefusSoins();loadRefusSoins();break;
+    case 'impayes':      ca.innerHTML=renderImpayes();loadImpayes();break;
+    case 'soins-police': ca.innerHTML=renderSoinsPolice();loadSoinsPolice();break;
+    case 'mortuaire':    ca.innerHTML=renderMortuaire();loadMortuaire();break;
+    case 'certificats':  ca.innerHTML=renderCertificats();loadCertificats();break;
+    case 'prise-service':ca.innerHTML=renderPriseService();loadPriseService();break;
+    case 'pathologies':  ca.innerHTML=renderPathologies();loadPathologiesView();break;
+    case 'protocoles':   ca.innerHTML=renderProtocoles();loadProtocoles();break;
+    case 'tarifs':       ca.innerHTML=renderTarifs();loadTarifs();break;
+    case 'compte':       ca.innerHTML=renderCompte();break;
+    case 'logs':         if(_profile?.role==='supervision'||_profile?.role==='direction'){ca.innerHTML=renderLogs();loadLogs();}else ca.innerHTML=renderAccessDenied();break;
+    case 'admin':        if(_profile?.role==='direction'){ca.innerHTML=renderAdmin();loadAdmin();}else ca.innerHTML=renderAccessDenied();break;
+    case 'medical-form': renderMedicalFormView('','');break;
+    default: ca.innerHTML='<div class="empty-state"><div class="es-icon">🚧</div><h3>Page introuvable</h3></div>';
+  }
+}
+function renderAccessDenied(){return'<div class="empty-state"><div class="es-icon">🔒</div><h3>Accès refusé</h3><p>Vous n\'avez pas les droits nécessaires.</p></div>';}
+// PATHOLOGIES LOADER
+async function loadPathologies(){
+  const{data:cats}=await sb.from('chlencodage_pathology_categories').select('*').order('ordre');if(cats)_categories=cats;
+  const{data:paths}=await sb.from('chlencodage_pathologies').select('*').eq('actif',true);if(paths)_allPathologies=paths;
+}
+// DASHBOARD
+function renderDashboard(){return`
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-icon si-blue">📋</div><div class="stat-info"><h3 id="statFiches">—</h3><p>Fiches Total</p><div class="stat-sub">Toutes vos fiches</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-cyan">📅</div><div class="stat-info"><h3 id="statToday">—</h3><p>Fiches Aujourd'hui</p><div class="stat-sub">Créées ce jour</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-orange">⏳</div><div class="stat-info"><h3 id="statPending">—</h3><p>En Attente</p><div class="stat-sub">Fiches soumises</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-green">✅</div><div class="stat-info"><h3 id="statValidated">—</h3><p>Validées ce mois</p><div class="stat-sub">Fiches validées</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-red">💸</div><div class="stat-info"><h3 id="statImpayes">—</h3><p>Impayés Ouverts</p><div class="stat-sub">En attente</div></div></div>
+    <div class="stat-card"><div class="stat-icon si-purple">🗂️</div><div class="stat-info"><h3 id="statDossiers">—</h3><p>Fiches Totales</p><div class="stat-sub">Tous patients</div></div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+    <div class="section-card"><div class="section-head">📋 Dernières fiches</div><div class="section-body"><div id="dashRecentFiches"><div class="empty-state" style="padding:24px"><div class="es-icon">📋</div><p>Chargement…</p></div></div></div></div>
+    <div class="section-card">
+      <div class="section-head" style="background:linear-gradient(135deg,#f59e0b,#d97706);">⚡ Accès rapide</div>
+      <div class="section-body"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <button class="btn btn-primary btn-lg" onclick="navigateTo('patients')" style="justify-content:center;">📋 Nouvelle Fiche</button>
+        <button class="btn btn-cyan btn-lg" onclick="navigateTo('refus-soins')" style="justify-content:center;">🚫 Refus de Soins</button>
+        <button class="btn btn-outline btn-lg" onclick="navigateTo('impayes')" style="justify-content:center;">💸 Impayés</button>
+        <button class="btn btn-outline btn-lg" onclick="navigateTo('mortuaire')" style="justify-content:center;">⚰️ Mortuaire</button>
+        <button class="btn btn-outline btn-lg" onclick="navigateTo('soins-police')" style="justify-content:center;">🚔 Soins Police</button>
+        <button class="btn btn-outline btn-lg" onclick="navigateTo('prise-service')" style="justify-content:center;">⏰ Prise Service</button>
+      </div></div>
+    </div>
+  </div>`;}
+async function loadDashboardStats(){
+  const today=new Date().toISOString().split('T')[0];
+  const firstOfMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1).toISOString().split('T')[0];
+  const[r1,r2,r3,r4,r5,r6]=await Promise.all([
+    sb.from('chlencodage_fiches_patients').select('id',{count:'exact'}).eq('user_id',_user.id),
+    sb.from('chlencodage_fiches_patients').select('id',{count:'exact'}).eq('user_id',_user.id).eq('in_date',today),
+    sb.from('chlencodage_fiches_patients').select('id',{count:'exact'}).eq('statut','soumis'),
+    sb.from('chlencodage_fiches_patients').select('id',{count:'exact'}).eq('statut','valide').gte('created_at',firstOfMonth),
+    sb.from('chlencodage_impayes').select('id',{count:'exact'}).eq('statut','en_attente'),
+    sb.from('chlencodage_fiches_patients').select('id',{count:'exact'})
+  ]);
+  ['statFiches','statToday','statPending','statValidated','statImpayes','statDossiers'].forEach((id,i)=>{document.getElementById(id).textContent=[r1,r2,r3,r4,r5,r6][i].count??'—';});
+  if(r3.count>0){const b=document.getElementById('pendingBadge');if(b){b.textContent=r3.count;b.style.display='';}}
+  const{data}=await sb.from('chlencodage_fiches_patients').select('*').eq('user_id',_user.id).order('created_at',{ascending:false}).limit(5);
+  const urg={U1:'badge-red',U2:'badge-orange',U3:'badge-green',implique:'badge-blue'};
+  const stMap={brouillon:'status-brouillon',soumis:'status-soumis',valide:'status-valide',refuse:'status-refuse'};
+  const rfEl=document.getElementById('dashRecentFiches');
+  if(!data||!data.length){rfEl.innerHTML='<div class="empty-state" style="padding:24px"><div class="es-icon">📋</div><p>Aucune fiche.</p></div>';return;}
+  rfEl.innerHTML=data.map(f=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:6px;">
+    <div><strong style="font-size:.9em;">${s(f.patient_nom||'?')} ${s(f.patient_prenom||'')}</strong>
+    <div style="font-size:.76em;color:var(--text3);">${fmtDate(f.in_date)} ${f.urgence?`<span class="badge ${urg[f.urgence]||'badge-blue'}">${f.urgence}</span>`:''}</div></div>
+    <div style="display:flex;align-items:center;gap:6px;"><span class="status-badge ${stMap[f.statut]||''}">${f.statut}</span><button class="btn btn-sm btn-outline" onclick="viewFiche('${f.id}')">👁️</button></div>
+  </div>`).join('');
+}
+
+// PATHOLOGY PICKER
+function renderPathologyPicker(selectedIds){
+  if(!_categories.length)return'<div style="color:var(--text3);font-size:.85em;font-style:italic;">Aucune pathologie disponible</div>';
+  return`<div class="pathology-picker"><h4>🦠 Pathologies liées</h4>${_categories.map(cat=>{const paths=_allPathologies.filter(p=>p.category_id===cat.id);if(!paths.length)return'';return`<div class="path-category"><div class="path-cat-label" style="background:${cat.couleur}20;color:${cat.couleur};">${cat.icone||'🦠'} ${s(cat.nom)}</div><div class="path-chips">${paths.map(p=>`<div class="path-chip ${(selectedIds||[]).includes(p.id)?'selected':''}" onclick="togglePathChip(this,'${p.id}','${s(p.nom)}')" data-pid="${p.id}" data-pnom="${s(p.nom)}">${(selectedIds||[]).includes(p.id)?'✓ ':''}<span>${s(p.nom)}</span>${p.code_cim10?`<small style="opacity:.6">(${s(p.code_cim10)})</small>`:''}</div>`).join('')}</div></div>`;}).join('')}<div class="selected-paths" id="selectedPathsDisplay">${(selectedIds||[]).map(id=>{const p=_allPathologies.find(x=>x.id===id);return p?`<span class="selected-path-tag">${s(p.nom)}<button onclick="togglePathChipById('${p.id}')">×</button></span>`:''}).join('')}</div></div>`;
+}
+function togglePathChip(el,pid,pnom){const idx=_selectedPathologies.indexOf(pid);if(idx===-1){_selectedPathologies.push(pid);el.classList.add('selected');el.querySelector('span').textContent='✓ '+pnom;}else{_selectedPathologies.splice(idx,1);el.classList.remove('selected');el.querySelector('span').textContent=pnom;}refreshSelectedPaths();}
+function togglePathChipById(pid){const idx=_selectedPathologies.indexOf(pid);if(idx!==-1)_selectedPathologies.splice(idx,1);const chip=document.querySelector('.path-chip[data-pid="'+pid+'"]');if(chip){chip.classList.remove('selected');chip.querySelector('span').textContent=chip.dataset.pnom;}refreshSelectedPaths();}
+function refreshSelectedPaths(){const el=document.getElementById('selectedPathsDisplay');if(!el)return;el.innerHTML=_selectedPathologies.map(id=>{const p=_allPathologies.find(x=>x.id===id);return p?`<span class="selected-path-tag">${s(p.nom)}<button onclick="togglePathChipById('${p.id}')">×</button></span>`:''}).join('');}
+// PATIENT FORM
+function renderPatientForm(){
+  _selectedPathologies=[];_ficheId=null;_medSaved=false;_bodyData={};_bodyDataMed={};_activeLesion='Fracture';_ynValues={};_evoColCount=0;_soignantCount=0;_bilanBuilt=false;_matBuilt=false;_matValues={};
+  return`
+  <div id="savedIndicator" class="saved-indicator">✅ Fiche sauvegardée (ID: <span id="savedFicheId"></span>)</div>
+  <div class="section-card"><div class="section-head" onclick="toggleSect(this)">📌 IDENTIFICATION <span class="chev">▼</span></div><div class="section-body">
+    <div class="form-row">
+      <div class="form-group sm"><label>Fiche Médicale</label><div class="radio-group"><label><input type="radio" name="pFicheMed" value="oui"> OUI</label><label><input type="radio" name="pFicheMed" value="non" checked> NON</label></div></div>
+      <div class="form-group"><label>N° ODIN</label><input type="text" id="pOdin" maxlength="50"></div>
+      <div class="form-group"><label>NOM APS</label><input type="text" id="pAps" maxlength="100"></div>
+      <div class="form-group sm"><label>N° Patient</label><input type="text" id="pNumPat" maxlength="30"></div>
+    </div>
+  </div></div>
+  <div class="section-card"><div class="section-head" onclick="toggleSect(this)">👤 PATIENT <span class="chev">▼</span></div><div class="section-body">
+    <div class="form-row">
+      <div class="form-group"><label>NOM</label><input type="text" id="pNom" maxlength="100"></div>
+      <div class="form-group"><label>PRÉNOM</label><input type="text" id="pPrenom" maxlength="100"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Date de naissance</label><input type="date" id="pDob"></div>
+      <div class="form-group xs"><label>&nbsp;</label><div class="check-group"><label><input type="checkbox" id="pMineur"> −18 ans</label></div></div>
+      <div class="form-group sm"><label>Sexe</label><div class="radio-group"><label><input type="radio" name="pSexe" value="homme"> Homme</label><label><input type="radio" name="pSexe" value="femme"> Femme</label></div></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Adresse</label><input type="text" id="pAdresse" maxlength="200"></div>
+      <div class="form-group sm"><label>Téléphone</label><input type="tel" id="pTel" maxlength="20"></div>
+      <div class="form-group sm"><label>N° Cl</label><input type="text" id="pCl" maxlength="30"></div>
+    </div>
+  </div></div>
+  <div class="section-card"><div class="section-head" onclick="toggleSect(this)">🚪 ARRIVÉE <span class="chev">▼</span></div><div class="section-body">
+    <div class="check-group" style="margin-bottom:12px;">
+      <label><input type="checkbox" id="pInSpontanee"> Spontanée</label>
+      <label><input type="checkbox" id="pInEquipe"> Via équipe</label>
+      <label><input type="checkbox" id="pInAmbu" onchange="document.getElementById('inAmbuGrp').style.display=this.checked?'flex':'none'"> Via ambulance</label>
+    </div>
+    <div class="form-row" id="inAmbuGrp" style="display:none;"><div class="form-group"><label>N° Ambulance</label><input type="text" id="pInNumAmbu" maxlength="30"></div></div>
+    <div class="form-row">
+      <div class="form-group"><label>Autre moyen</label><input type="text" id="pInAutre" maxlength="100"></div>
+      <div class="form-group"><label>Date</label><input type="date" id="pInDate"></div>
+      <div class="form-group sm"><label>Heure IN</label><input type="time" id="pHeurIn"></div>
+    </div>
+  </div></div>
+  <div class="section-card"><div class="section-head" onclick="toggleSect(this)">👨‍⚕️ SOIGNANTS <span class="chev">▼</span></div><div class="section-body">
+    <div id="soignantsContainer"></div>
+    <button class="btn btn-outline btn-sm" onclick="addSoignant()" style="margin-top:8px;">+ Ajouter un soignant</button>
+  </div></div>
+  <div class="section-card"><div class="section-head" onclick="toggleSect(this)">📊 BILAN <span class="chev">▼</span></div><div class="section-body">
+    <div class="form-row">
+      <div class="form-group sm"><label>Conscience</label><div class="radio-group"><label><input type="radio" name="pConscience" value="oui"> OUI</label><label><input type="radio" name="pConscience" value="non"> NON</label></div></div>
+      <div class="form-group sm"><label>Respiration</label><div class="radio-group"><label><input type="radio" name="pResp" value="oui"> OUI</label><label><input type="radio" name="pResp" value="non"> NON</label></div></div>
+      <div class="form-group sm"><label>Circulation</label><div class="radio-group"><label><input type="radio" name="pCirc" value="oui"> OUI</label><label><input type="radio" name="pCirc" value="non"> NON</label></div></div>
+    </div>
+    <div class="form-row"><div class="form-group"><label>Hémorragie</label><div class="radio-group"><label><input type="radio" name="pHemo" value="interne"> Interne</label><label><input type="radio" name="pHemo" value="externe"> Externe</label><label><input type="radio" name="pHemo" value="exteriorisee"> Extériorisée</label><label><input type="radio" name="pHemo" value="non"> Non</label></div></div></div>
+    <div class="form-group" style="margin-bottom:14px;"><label>Urgence</label>
+      <div class="urgence-group">
+        <label class="urgence-pill u1" id="ppu1"><input type="radio" name="pUrg" value="U1" onchange="updateUrgPills()"> 🔴 U1</label>
+        <label class="urgence-pill u2" id="ppu2"><input type="radio" name="pUrg" value="U2" onchange="updateUrgPills()"> 🟡 U2</label>
+        <label class="urgence-pill u3" id="ppu3"><input type="radio" name="pUrg" value="U3" onchange="updateUrgPills()"> 🟢 U3</label>
+        <label class="urgence-pill u4" id="ppu4"><input type="radio" name="pUrg" value="implique" onchange="updateUrgPills()"> 🔵 Impliqué</label>
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:16px;"><div style="font-weight:700;font-size:.84em;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;">🧍 Schéma corporel</div>
+      <div class="body-schema-wrapper">
+        <div class="bsvg-container">${renderBodySvg('bodySvg','zone_','toggleBodyZone')}<div style="font-size:.7em;color:var(--text3);text-align:center;">Cliquer sur une zone</div></div>
+        <div class="body-legend"><h4>Type de lésion actif</h4>
+          <div class="lesion-chips" id="lesionChips">${['Fracture','Entorse','Contusion','Brûlure','Piqûre','Autre'].map((l,i)=>`<div class="lesion-chip ${i===0?'selected':''}" id="lchip_${LESION_ID_MAP[l]||l}" onclick="setLesion('${l}')" style="border-color:${LESION_COLORS[l]};color:${LESION_COLORS[l]};">${l}</div>`).join('')}</div>
+          <div class="autre-lesion-box" id="autreLesionBox"><label>✏️ Précisez « Autre »</label><input type="text" id="autreLesionText" placeholder="Ex: luxation, hématome…" maxlength="100" oninput="updateZonesList()"></div>
+          <div id="activeZonesList" style="margin-top:12px;"></div>
+        </div>
+      </div>
+    </div>
+    <details style="margin-top:14px;"><summary style="cursor:pointer;font-weight:600;font-size:.84em;color:var(--text2);padding:6px 0;">📋 Tableau détaillé (optionnel)</summary>
+      <div style="overflow-x:auto;margin-top:10px;"><table class="bilan-table"><thead><tr><th></th><th>Tête</th><th>Cervical</th><th>Colonne</th><th>MSD</th><th>MSG</th><th>Thorax</th><th>Abdo</th><th>Bassin</th><th>MID</th><th>MIG</th></tr></thead><tbody id="bilanBody"></tbody></table></div>
+    </details>
+  </div></div>
+  <div class="section-card">
+    <div class="section-head" onclick="toggleSect(this)" style="background:linear-gradient(135deg,#7c3aed,#6d28d9);color:#fff;">🦠 PATHOLOGIES LIÉES <span class="chev">▼</span></div>
+    <div class="section-body" id="pathPickerBody"></div>
+  </div>
+  <div class="section-card"><div class="section-head" onclick="toggleSect(this)">💊 SOINS <span class="chev">▼</span></div><div class="section-body">
+    <div class="check-group" style="flex-wrap:wrap;gap:12px;">
+      <label><input type="checkbox" data-soin="plaies"> Soin de plaies</label>
+      <label><input type="checkbox" data-soin="pansement"> Pansement</label>
+      <label><input type="checkbox" data-soin="attelle"> Attelle</label>
+      <label><input type="checkbox" data-soin="matelas_depression"> Matelas à dépression</label>
+      <label><input type="checkbox" data-soin="compression"> Compression</label>
+      <label><input type="checkbox" data-soin="bandage"> Bandage</label>
+      <label><input type="checkbox" data-soin="collier_cervical"> Collier Cervical</label>
+      <label><input type="checkbox" data-soin="repos_surveillance"> Repos / Surveillance</label>
+    </div>
+    <div class="form-group" style="margin-top:12px;"><label>Autres soins</label><textarea id="pAutresSoins" maxlength="500"></textarea></div>
+  </div></div>
+  <div class="section-card"><div class="section-head" onclick="toggleSect(this)">🧰 MATÉRIEL <span class="chev">▼</span></div><div class="section-body"><div style="overflow-x:auto;"><table class="mat-table"><tbody id="matBody"></tbody></table></div></div></div>
+  <div class="section-card"><div class="section-head" onclick="toggleSect(this)">🚶 SORTIE <span class="chev">▼</span></div><div class="section-body">
+    <div class="check-group" style="margin-bottom:12px;">
+      <label><input type="checkbox" id="pOutNormal"> Retour à la vie normale</label>
+      <label><input type="checkbox" id="pOutRefus"> Refus de soins</label>
+      <label><input type="checkbox" id="pOutVsl"> Évacuation VSL</label>
+      <label><input type="checkbox" id="pOutAmbu" onchange="document.getElementById('outAmbuGrp').style.display=this.checked?'flex':'none'"> Ambulance</label>
+    </div>
+    <div class="form-row" id="outAmbuGrp" style="display:none;">
+      <div class="form-group"><label>N° Ambulance</label><input type="text" id="pOutNumAmbu" maxlength="30"></div>
+      <div class="form-group"><label>Vecteur / Hôpital</label><input type="text" id="pOutVecteur" maxlength="100"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Autre moyen</label><input type="text" id="pOutAutre" maxlength="100"></div>
+      <div class="form-group sm"><label>Heure OUT</label><input type="time" id="pHeurOut"></div>
+    </div>
+  </div></div>
+  <div style="text-align:center;margin:16px 0 28px;padding:20px;background:rgba(26,47,107,.05);border:2px dashed var(--navy);border-radius:var(--radius);">
+    <p style="font-size:.85em;color:var(--text2);margin-bottom:14px;">Besoin d'un bilan médical détaillé ?</p>
+    <button class="btn btn-primary btn-lg" onclick="saveAndOpenMedical()">🏥 Sauvegarder & Ajouter la Fiche Médicale</button>
+  </div>
+  <div class="actions-bar">
+    <button class="btn btn-cyan btn-lg" id="btnSaveFiche" onclick="saveFiche()">💾 Sauvegarder la fiche</button>
+    <button class="btn btn-ghost btn-lg" onclick="if(confirm('Réinitialiser le formulaire ?'))initPatientForm()">🗑️ Réinitialiser</button>
+  </div>`;}
+
+function renderBodySvg(svgId,pfx,clickFn){return`<svg id="${svgId}" viewBox="0 0 120 280" xmlns="http://www.w3.org/2000/svg">
+    <ellipse id="${pfx}tete" cx="60" cy="20" rx="17" ry="18" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5" onclick="${clickFn}('Tête')" style="cursor:pointer"/>
+    <rect id="${pfx}cervical" x="53" y="37" width="14" height="12" rx="3" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5" onclick="${clickFn}('Cervical')" style="cursor:pointer"/>
+    <rect id="${pfx}thorax" x="40" y="49" width="40" height="42" rx="5" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5" onclick="${clickFn}('Thorax')" style="cursor:pointer"/>
+    <rect id="${pfx}colonne" x="55" y="49" width="10" height="80" rx="3" fill="rgba(0,0,0,0)" stroke="none" onclick="${clickFn}('Colonne')" style="cursor:pointer"/>
+    <rect id="${pfx}abdo" x="43" y="91" width="34" height="26" rx="4" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5" onclick="${clickFn}('Abdo')" style="cursor:pointer"/>
+    <rect id="${pfx}bassin" x="40" y="117" width="40" height="20" rx="4" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5" onclick="${clickFn}('Bassin')" style="cursor:pointer"/>
+    <rect id="${pfx}msd" x="80" y="49" width="18" height="60" rx="6" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5" onclick="${clickFn}('MSD')" style="cursor:pointer"/>
+    <rect id="${pfx}msg" x="22" y="49" width="18" height="60" rx="6" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5" onclick="${clickFn}('MSG')" style="cursor:pointer"/>
+    <rect id="${pfx}mid" x="60" y="137" width="20" height="70" rx="6" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5" onclick="${clickFn}('MID')" style="cursor:pointer"/>
+    <rect id="${pfx}mig" x="40" y="137" width="20" height="70" rx="6" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5" onclick="${clickFn}('MIG')" style="cursor:pointer"/>
+    <text x="60" y="21" text-anchor="middle" font-size="6" fill="#475569" pointer-events="none">Tête</text><text x="60" y="45" text-anchor="middle" font-size="5" fill="#475569" pointer-events="none">Cerv.</text>
+    <text x="60" y="73" text-anchor="middle" font-size="6" fill="#475569" pointer-events="none">Thorax</text><text x="60" y="107" text-anchor="middle" font-size="6" fill="#475569" pointer-events="none">Abdo</text>
+    <text x="60" y="130" text-anchor="middle" font-size="5.5" fill="#475569" pointer-events="none">Bassin</text><text x="89" y="82" text-anchor="middle" font-size="5.5" fill="#475569" pointer-events="none">MSD</text>
+    <text x="31" y="82" text-anchor="middle" font-size="5.5" fill="#475569" pointer-events="none">MSG</text><text x="70" y="175" text-anchor="middle" font-size="5.5" fill="#475569" pointer-events="none">MID</text>
+    <text x="50" y="175" text-anchor="middle" font-size="5.5" fill="#475569" pointer-events="none">MIG</text>
+  </svg>`;}
+
+function initPatientForm(){
+  _ficheId=null;_medSaved=false;_selectedPathologies=[];_bodyData={};_bodyDataMed={};_activeLesion='Fracture';_ynValues={};_evoColCount=0;_soignantCount=0;
+  updateUrgPills();updateBodySvg();updateZonesList();updateSavedIndicator();
+  if(!_bilanBuilt)buildBilanTable();if(!_matBuilt)buildMaterielTable();addSoignant();
+  const ppb=document.getElementById('pathPickerBody');if(ppb)ppb.innerHTML=renderPathologyPicker([]);
+}
+function toggleSect(el){el.classList.toggle('collapsed');el.nextElementSibling.classList.toggle('hidden');}
+function updateSavedIndicator(){
+  const el=document.getElementById('savedIndicator');if(!el)return;
+  if(_ficheId){el.classList.add('show');document.getElementById('savedFicheId').textContent=_ficheId.slice(0,8)+'…';const b=document.getElementById('btnSaveFiche');if(b){b.textContent='✅ Déjà sauvegardée';b.disabled=true;}}
+  else{el.classList.remove('show');const b=document.getElementById('btnSaveFiche');if(b){b.textContent='💾 Sauvegarder la fiche';b.disabled=false;}}
+}
+function updateUrgPills(){const v=getRadio('pUrg');[['ppu1','U1'],['ppu2','U2'],['ppu3','U3'],['ppu4','implique']].forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.classList.toggle('checked',v===val);});}
+function setLesion(l){_activeLesion=l;document.querySelectorAll('#lesionChips .lesion-chip').forEach(c=>c.classList.remove('selected'));const chip=document.getElementById('lchip_'+(LESION_ID_MAP[l]||l));if(chip)chip.classList.add('selected');const box=document.getElementById('autreLesionBox');if(box)l==='Autre'?box.classList.add('visible'):box.classList.remove('visible');}
+function toggleBodyZone(zone){if(!_bodyData[zone])_bodyData[zone]=[];const arr=_bodyData[zone],idx=arr.indexOf(_activeLesion);idx===-1?arr.push(_activeLesion):arr.splice(idx,1);if(!arr.length)delete _bodyData[zone];updateBodySvg();updateZonesList();if(!_syncFromTable){_syncFromSchema=true;syncBodyToTable();_syncFromSchema=false;}}
+function updateBodySvg(){Object.entries(ZONE_IDS).forEach(([zone,sid])=>{const el=document.getElementById(sid);if(!el)return;if(_bodyData[zone]&&_bodyData[zone].length>0){const colors=_bodyData[zone].map(l=>LESION_COLORS[l]||'#ccc');el.setAttribute('fill',colors[0]);el.setAttribute('opacity','0.85');el.setAttribute('stroke',colors.length>1?colors[1]:'#94a3b8');el.setAttribute('stroke-width',colors.length>1?'3':'1.5');}else{el.setAttribute('fill','#e2e8f0');el.setAttribute('opacity','1');el.setAttribute('stroke','#94a3b8');el.setAttribute('stroke-width','1.5');}});}
+function updateZonesList(){const el=document.getElementById('activeZonesList');if(!el)return;if(!Object.keys(_bodyData).length){el.innerHTML='<div style="font-size:.78em;color:var(--text3);font-style:italic;">Aucune zone sélectionnée</div>';return;}const autreTxt=document.getElementById('autreLesionText')?.value?.trim();let html='<div style="font-size:.78em;font-weight:700;color:var(--text2);margin-bottom:6px;">Zones marquées :</div>';Object.entries(_bodyData).forEach(([zone,lesions])=>{lesions.forEach(lesion=>{const color=LESION_COLORS[lesion]||'#999';const label=(lesion==='Autre'&&autreTxt)?`Autre (${s(autreTxt)})`:lesion;html+=`<span class="zone-badge" style="background:${color};">${zone} — ${label}<button onclick="removeBodyZone('${zone}','${lesion}')">×</button></span>`;});});el.innerHTML=html;}
+function removeBodyZone(zone,lesion){if(_bodyData[zone]){_bodyData[zone]=_bodyData[zone].filter(l=>l!==lesion);if(!_bodyData[zone].length)delete _bodyData[zone];}updateBodySvg();updateZonesList();if(!_syncFromTable){_syncFromSchema=true;syncBodyToTable();_syncFromSchema=false;}}
+function syncBodyToTable(){document.querySelectorAll('#bilanBody input[type="checkbox"]').forEach(cb=>{cb.checked=false;if(cb.parentElement)cb.parentElement.classList.remove('cell-checked');});Object.entries(_bodyData).forEach(([zone,lesions])=>{lesions.forEach(lesion=>{const zk=zone.replace(/[^a-zA-Z]/g,''),lk=(LESION_ID_MAP[lesion]||lesion).replace(/[^a-zA-Z]/g,'');const el=document.getElementById('bilan_'+zk+'_'+lk);if(el){el.checked=true;if(el.parentElement)el.parentElement.classList.add('cell-checked');}});});}
+function onBilanCbChange(cb,zone,lesionKey){if(_syncFromSchema)return;const ld=Object.keys(LESION_ID_MAP).find(k=>LESION_ID_MAP[k]===lesionKey)||lesionKey;_syncFromTable=true;if(cb.checked){if(!_bodyData[zone])_bodyData[zone]=[];if(!_bodyData[zone].includes(ld))_bodyData[zone].push(ld);if(cb.parentElement)cb.parentElement.classList.add('cell-checked');}else{if(_bodyData[zone]){_bodyData[zone]=_bodyData[zone].filter(l=>l!==ld);if(!_bodyData[zone].length)delete _bodyData[zone];}if(cb.parentElement)cb.parentElement.classList.remove('cell-checked');}updateBodySvg();updateZonesList();_syncFromTable=false;}
+function buildBilanTable(){if(_bilanBuilt)return;_bilanBuilt=true;const body=document.getElementById('bilanBody');if(!body)return;BILAN_LESIONS.forEach(les=>{const lk=(LESION_ID_MAP[les]||les).replace(/[^a-zA-Z]/g,'');let row='<tr><td>'+les+'</td>';BILAN_ZONES.forEach(zone=>{const zk=zone.replace(/[^a-zA-Z]/g,''),id='bilan_'+zk+'_'+lk;row+=`<td id="cell_${zk}_${lk}"><input type="checkbox" id="${id}" onchange="onBilanCbChange(this,'${zone}','${lk}')"></td>`;});row+='</tr>';body.insertAdjacentHTML('beforeend',row);});}
+function buildMaterielTable(){if(_matBuilt)return;_matBuilt=true;const body=document.getElementById('matBody');if(!body)return;MATERIEL_ITEMS.forEach(item=>{const id='mat_'+item.replace(/[^a-z0-9]/gi,'_');_matValues[id]=0;body.insertAdjacentHTML('beforeend',`<tr><td>${s(item)}</td><td><div class="qty-control"><button class="qty-btn" onclick="chgQty('${id}',-1)">−</button><span class="qty-val" id="${id}_disp">0</span><button class="qty-btn" onclick="chgQty('${id}',1)">+</button></div></td></tr>`);});body.insertAdjacentHTML('beforeend',`<tr><td>Canulle — Taille</td><td><input type="text" id="matCanulle" placeholder="cm" maxlength="10" style="width:80px;padding:5px 9px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--input-bg);"></td></tr><tr><td>Autre matériel</td><td><input type="text" id="matAutre" placeholder="Préciser…" maxlength="100" style="width:180px;padding:5px 9px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--input-bg);"></td></tr>`);}
+function chgQty(id,d){_matValues[id]=Math.max(0,(_matValues[id]||0)+d);const el=document.getElementById(id+'_disp');if(el){el.textContent=_matValues[id];el.className='qty-val'+(_matValues[id]>0?' nonzero':'');}}
+function getMateriel(){const data={};MATERIEL_ITEMS.forEach(item=>{const id='mat_'+item.replace(/[^a-z0-9]/gi,'_');if((_matValues[id]||0)>0)data[item]=_matValues[id];});const can=document.getElementById('matCanulle')?.value||'';const aut=document.getElementById('matAutre')?.value||'';if(can)data['Canulle_taille']=s(can);if(aut)data['Autre']=s(aut);return data;}
+function addSoignant(){const id=_soignantCount++;document.getElementById('soignantsContainer').insertAdjacentHTML('beforeend',`<div class="soignant-card" id="sg_${id}"><div class="soignant-header"><strong>Soignant #${id+1}</strong><button class="btn-remove" onclick="document.getElementById('sg_${id}').remove()">×</button></div><div class="form-row"><div class="form-group"><label>NOM</label><input type="text" class="sg-nom" maxlength="100"></div><div class="form-group sm" style="display:none;" id="inami_${id}"><label>N° INAMI</label><input type="text" class="sg-inami" maxlength="20"></div></div><div class="check-group"><label><input type="checkbox" class="sg-sec"> SEC</label><label><input type="checkbox" class="sg-es"> ES</label><label><input type="checkbox" class="sg-eps"> EPS</label><label><input type="checkbox" class="sg-tms"> TMS</label><label><input type="checkbox" class="sg-amu"> AMU</label><label><input type="checkbox" class="sg-inf" onchange="toggleInami(this,'${id}')"> Infirmier</label><label><input type="checkbox" class="sg-med" onchange="toggleInami(this,'${id}')"> Médecin</label></div></div>`);}
+function toggleInami(cb,id){const c=document.getElementById('sg_'+id);if(!c)return;const show=c.querySelector('.sg-inf').checked||c.querySelector('.sg-med').checked;document.getElementById('inami_'+id).style.display=show?'':'none';}
+function getSoignants(){return Array.from(document.querySelectorAll('.soignant-card')).map(c=>({nom:s(c.querySelector('.sg-nom')?.value||''),is_sec:c.querySelector('.sg-sec')?.checked||false,is_es:c.querySelector('.sg-es')?.checked||false,is_eps:c.querySelector('.sg-eps')?.checked||false,is_tms:c.querySelector('.sg-tms')?.checked||false,is_amu:c.querySelector('.sg-amu')?.checked||false,is_infirmier:c.querySelector('.sg-inf')?.checked||false,is_medecin:c.querySelector('.sg-med')?.checked||false,numero_inami:s(c.querySelector('.sg-inami')?.value||'')}));}
+function collectFicheData(){
+  const soins={};document.querySelectorAll('[data-soin]').forEach(cb=>{if(cb.checked)soins[cb.dataset.soin]=true;});
+  const bilanData=JSON.parse(JSON.stringify(_bodyData));const autreTxt=document.getElementById('autreLesionText')?.value?.trim();
+  if(autreTxt)Object.keys(bilanData).forEach(z=>{bilanData[z]=bilanData[z].map(l=>l==='Autre'?`Autre: ${s(autreTxt)}`:l);});
+  return{fiche_medicale:getRadio('pFicheMed')==='oui',numero_odin:s(document.getElementById('pOdin')?.value?.trim())||null,nom_aps:s(document.getElementById('pAps')?.value?.trim())||null,numero_patient:s(document.getElementById('pNumPat')?.value?.trim())||null,patient_nom:s(document.getElementById('pNom')?.value?.trim())||null,patient_prenom:s(document.getElementById('pPrenom')?.value?.trim())||null,date_naissance:document.getElementById('pDob')?.value||null,est_mineur:getChecked('pMineur'),sexe:getRadio('pSexe')||null,adresse:s(document.getElementById('pAdresse')?.value?.trim())||null,telephone:s(document.getElementById('pTel')?.value?.trim())||null,numero_cl:s(document.getElementById('pCl')?.value?.trim())||null,in_spontanee:getChecked('pInSpontanee'),in_via_equipe:getChecked('pInEquipe'),in_via_ambulance:getChecked('pInAmbu'),in_num_ambulance:s(document.getElementById('pInNumAmbu')?.value?.trim())||null,in_autre_moyen:s(document.getElementById('pInAutre')?.value?.trim())||null,in_date:document.getElementById('pInDate')?.value||null,heure_in:document.getElementById('pHeurIn')?.value||null,conscience:getRadio('pConscience')==='oui'?true:getRadio('pConscience')==='non'?false:null,respiration:getRadio('pResp')==='oui'?true:getRadio('pResp')==='non'?false:null,circulation:getRadio('pCirc')==='oui'?true:getRadio('pCirc')==='non'?false:null,hemorragie:getRadio('pHemo')||null,urgence:getRadio('pUrg')||null,bilan_tableau:bilanData,autre_lesion_precision:autreTxt?s(autreTxt):null,pathologies_ids:JSON.stringify(_selectedPathologies),soins,autres_soins:s(document.getElementById('pAutresSoins')?.value?.trim())||null,materiel:getMateriel(),out_retour_normal:getChecked('pOutNormal'),out_refus_soins:getChecked('pOutRefus'),out_evacuation_vsl:getChecked('pOutVsl'),out_evacuation_ambulance:getChecked('pOutAmbu'),out_num_ambulance:s(document.getElementById('pOutNumAmbu')?.value?.trim())||null,out_vecteur:s(document.getElementById('pOutVecteur')?.value?.trim())||null,out_autre_moyen:s(document.getElementById('pOutAutre')?.value?.trim())||null,heure_out:document.getElementById('pHeurOut')?.value||null,soignants:getSoignants()};
+}
+async function saveFiche(){
+  if(!_user)return;if(_ficheId){toast('Fiche déjà sauvegardée.','info');return;}
+  const data=collectFicheData();
+  if(!data.patient_nom&&!data.patient_prenom){toast('Veuillez renseigner le nom ou prénom du patient','error');return;}
+  const soignants=data.soignants;delete data.soignants;
+  const ficheRow={user_id:_user.id,statut:'brouillon',...data};delete ficheRow.soignants;
+  Object.keys(ficheRow).forEach(k=>{if(ficheRow[k]===undefined)delete ficheRow[k];});
+  const{data:fiche,error}=await sb.from('chlencodage_fiches_patients').insert(ficheRow).select('id').single();
+  if(error){toast('Erreur: '+error.message,'error');return;}
+  _ficheId=fiche.id;
+  if(soignants.length>0){const rows=soignants.filter(sg=>sg.nom?.trim()).map(sg=>({...sg,fiche_id:_ficheId}));if(rows.length)await sb.from('chlencodage_fiche_soignants').insert(rows);}
+  updateSavedIndicator();toast('✅ Fiche sauvegardée !','success');
+  logAction('CREATE_FICHE','patients',_ficheId,{patient:data.patient_nom+' '+data.patient_prenom});
+}
+async function saveAndOpenMedical(){
+  if(!_user)return;if(!_ficheId){await saveFiche();}if(!_ficheId)return;
+  const pn=s(document.getElementById('pNom')?.value?.trim())||'?';const pp=s(document.getElementById('pPrenom')?.value?.trim())||'';
+  switchToMedicalFormView(pn,pp);
+}
+function switchToMedicalFormView(nom,prenom){
+  _currentView='medical-form';document.getElementById('pageTitle').textContent='Fiche Médicale';
+  document.getElementById('ficheIndicator').classList.add('show');
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  _bodyDataMed=JSON.parse(JSON.stringify(_bodyData));renderMedicalFormView(nom||'',prenom||'');
+}
+function switchToMainPatientForm(){document.getElementById('ficheIndicator').classList.remove('show');navigateTo('patients');updateSavedIndicator();}
+
+// MEDICAL FORM
+function renderMedicalFormView(nom,prenom){
+  const ca=document.getElementById('contentArea');
+  ca.innerHTML=`
+  <div class="medical-header-bar">
+    <div><h2>🏥 Fiche Médicale — Bilan Clinique</h2><p>Patient : ${s(nom||'?')} ${s(prenom||'')}</p></div>
+    <button class="btn btn-ghost" onclick="switchToMainPatientForm()" style="color:#fff;border-color:rgba(255,255,255,.4);">↩ Retour fiche principale</button>
+  </div>
+  <div class="section-card"><div class="section-head" style="background:var(--navy);">🩺 BILAN CLINIQUE INITIAL</div><div class="section-body">
+    <div class="yn-grid">
+      <div class="yn-item"><span class="yn-label">Agité</span><div class="yn-btns"><button class="yn-btn yes" onclick="toggleYN(this,'agite','oui')">OUI</button><button class="yn-btn no" onclick="toggleYN(this,'agite','non')">NON</button></div></div>
+      <div class="yn-item"><span class="yn-label">Convulsion</span><div class="yn-btns"><button class="yn-btn yes" onclick="toggleYN(this,'convulsion','oui')">OUI</button><button class="yn-btn no" onclick="toggleYN(this,'convulsion','non')">NON</button></div></div>
+      <div class="yn-item"><span class="yn-label">Cyanosé</span><div class="yn-btns"><button class="yn-btn yes" onclick="toggleYN(this,'cyanose','oui')">OUI</button><button class="yn-btn no" onclick="toggleYN(this,'cyanose','non')">NON</button></div></div>
+      <div class="yn-item"><span class="yn-label">Déficit moteur</span><div class="yn-btns"><button class="yn-btn yes" onclick="toggleYN(this,'deficit_moteur','oui')">OUI</button><button class="yn-btn no" onclick="toggleYN(this,'deficit_moteur','non')">NON</button></div></div>
+      <div class="yn-item"><span class="yn-label">Inconscient</span><div class="yn-btns"><button class="yn-btn yes" onclick="toggleYN(this,'inconscient','oui')">OUI</button><button class="yn-btn no" onclick="toggleYN(this,'inconscient','non')">NON</button></div></div>
+      <div class="yn-item"><span class="yn-label">Resp. anormale</span><div class="yn-btns"><button class="yn-btn yes" onclick="toggleYN(this,'resp_anormale','oui')">OUI</button><button class="yn-btn no" onclick="toggleYN(this,'resp_anormale','non')">NON</button></div></div>
+    </div>
+  </div></div>
+  <div class="section-card"><div class="section-head" style="background:var(--navy);">👁️ PUPILLES</div><div class="section-body">
+    <div class="pupilles-grid">
+      <label class="pupille-check"><input type="checkbox" id="mpNorm"> Normales</label>
+      <label class="pupille-check"><input type="checkbox" id="mpMyos"> Myosis</label>
+      <label class="pupille-check"><input type="checkbox" id="mpMydr"> Mydriase</label>
+      <label class="pupille-check"><input type="checkbox" id="mpAniso" onchange="toggleAniso()"> Anisocorie <span class="aniso-side" id="anisoSide"><label><input type="checkbox" id="anisoG"> G</label><label><input type="checkbox" id="anisoD"> D</label></span></label>
+      <label class="pupille-check"><input type="checkbox" id="mpReact"> Réactives</label>
+    </div>
+  </div></div>
+  <div class="section-card"><div class="section-head" style="background:var(--navy);">🫁 FRÉQUENCE RESPIRATOIRE</div><div class="section-body">
+    <div class="freq-grid">
+      <label class="freq-chip"><input type="radio" name="mFreqResp" value=">25"> &gt; 25 /min</label>
+      <label class="freq-chip"><input type="radio" name="mFreqResp" value="24-10"> 24 – 10 /min</label>
+      <label class="freq-chip"><input type="radio" name="mFreqResp" value="<10"> &lt; 10 /min</label>
+      <label class="freq-chip"><input type="radio" name="mFreqResp" value="0"> 0 (Arrêt)</label>
+    </div>
+  </div></div>
+  <div class="section-card"><div class="section-head" style="background:var(--navy);">🧠 GLASGOW</div><div class="section-body">
+    <div class="glasgow-grid">
+      <div class="glasgow-card"><h4>Ouverture des yeux</h4>
+        <div class="glasgow-option"><label><input type="radio" name="gYeux" value="4" onchange="updateGlasgow()"> Spontanée</label><span class="score-badge">4</span></div>
+        <div class="glasgow-option"><label><input type="radio" name="gYeux" value="3" onchange="updateGlasgow()"> À la voix</label><span class="score-badge">3</span></div>
+        <div class="glasgow-option"><label><input type="radio" name="gYeux" value="2" onchange="updateGlasgow()"> À la douleur</label><span class="score-badge">2</span></div>
+        <div class="glasgow-option"><label><input type="radio" name="gYeux" value="1" onchange="updateGlasgow()"> Aucune</label><span class="score-badge">1</span></div>
+      </div>
+      <div class="glasgow-card"><h4>Réponse verbale</h4>
+        <div class="glasgow-option"><label><input type="radio" name="gVerbal" value="5" onchange="updateGlasgow()"> Orientée</label><span class="score-badge">5</span></div>
+        <div class="glasgow-option"><label><input type="radio" name="gVerbal" value="4" onchange="updateGlasgow()"> Confuse</label><span class="score-badge">4</span></div>
+        <div class="glasgow-option"><label><input type="radio" name="gVerbal" value="3" onchange="updateGlasgow()"> Inappropriée</label><span class="score-badge">3</span></div>
+        <div class="glasgow-option"><label><input type="radio" name="gVerbal" value="2" onchange="updateGlasgow()"> Incompréhension</label><span class="score-badge">2</span></div>
+        <div class="glasgow-option"><label><input type="radio" name="gVerbal" value="1" onchange="updateGlasgow()"> Nulle</label><span class="score-badge">1</span></div>
+      </div>
+      <div class="glasgow-card"><h4>Réponse motrice</h4>
+        <div class="glasgow-option"><label><input type="radio" name="gMoteur" value="6" onchange="updateGlasgow()"> Obéit</label><span class="score-badge">6</span></div>
+        <div class="glasgow-option"><label><input type="radio" name="gMoteur" value="5" onchange="updateGlasgow()"> Orientée</label><span class="score-badge">5</span></div>
+        <div class="glasgow-option"><label><input type="radio" name="gMoteur" value="4" onchange="updateGlasgow()"> Évitement</label><span class="score-badge">4</span></div>
+        <div class="glasgow-option"><label><input type="radio" name="gMoteur" value="3" onchange="updateGlasgow()"> Flexion</label><span class="score-badge">3</span></div>
+        <div class="glasgow-option"><label><input type="radio" name="gMoteur" value="2" onchange="updateGlasgow()"> Extension</label><span class="score-badge">2</span></div>
+        <div class="glasgow-option"><label><input type="radio" name="gMoteur" value="1" onchange="updateGlasgow()"> Nulle</label><span class="score-badge">1</span></div>
+      </div>
+    </div>
+    <div class="glasgow-total"><div class="score-num" id="glasgowTotal">—</div><div class="score-label">Score Glasgow / 15</div></div>
+  </div></div>
+  <div class="section-card"><div class="section-head" style="background:var(--navy);">📋 MOTIFS CONSTATÉS</div><div class="section-body">
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <label class="motif-chip"><input type="checkbox" id="mAcc"> Accidents circulation</label>
+      <label class="motif-chip"><input type="checkbox" id="mBag"> Bagarre</label>
+      <label class="motif-chip"><input type="checkbox" id="mBru"> Brûlure</label>
+      <label class="motif-chip"><input type="checkbox" id="mChu"> Chute</label>
+      <label class="motif-chip"><input type="checkbox" id="mEle"> Électrocution</label>
+      <label class="motif-chip"><input type="checkbox" id="mAlc"> Intox. alcool</label>
+      <label class="motif-chip"><input type="checkbox" id="mAli"> Intox. alimentaire</label>
+      <label class="motif-chip"><input type="checkbox" id="mCo"> Intox. CO</label>
+      <label class="motif-chip"><input type="checkbox" id="mDro"> Intox. drogue</label>
+      <label class="motif-chip"><input type="checkbox" id="mMed"> Intox. médicamenteuse</label>
+      <label class="motif-chip"><input type="checkbox" id="mNoy"> Noyade</label>
+      <label class="motif-chip"><input type="checkbox" id="mPla"> Plaie pénétrante</label>
+    </div>
+    <div class="form-group" style="margin-top:12px;"><label>Autre motif</label><input type="text" id="mAutreMotif" placeholder="Préciser…" maxlength="100"></div>
+  </div></div>
+  <div class="section-card"><div class="section-head" style="background:var(--navy);">💓 ARYTHMIES</div><div class="section-body">
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+      <label class="arythmie-chip"><input type="checkbox" id="aryBrady"> Bradycardie &lt; 50/min</label>
+      <label class="arythmie-chip"><input type="checkbox" id="aryTachy"> Tachycardie &gt; 140/min</label>
+      <label class="arythmie-chip"><input type="checkbox" id="aryAsys"> Asystolie</label>
+    </div>
+    <div class="form-group"><label>Autre arythmie</label><input type="text" id="aryAutre" placeholder="Préciser…" maxlength="100"></div>
+  </div></div>
+  <div class="section-card"><div class="section-head" style="background:var(--navy);">📝 BILAN ET REMARQUES</div><div class="section-body">
+    <div class="form-group"><textarea id="mBilanRem" style="min-height:100px;" placeholder="Bilan clinique, observations…" maxlength="2000"></textarea></div>
+  </div></div>
+  <div class="section-card"><div class="section-head" style="background:var(--navy);">🧍 LÉSIONS TRAUMATIQUES</div><div class="section-body">
+    <div class="body-schema-wrapper">
+      <div class="bsvg-container">${renderBodySvg('bodySvgMed','mz_','toggleBodyZoneMed')}</div>
+      <div class="body-legend"><h4>Zones marquées</h4><div id="medZonesList"></div>
+        <div class="lesion-chips" id="medLesionChips" style="margin-top:10px;">
+          ${['Fracture','Entorse','Contusion','Brûlure','Piqûre','Autre'].map((l,i)=>`<div class="lesion-chip ${i===0?'selected':''}" onclick="setLesionMed('${l}')" id="mlchip_${LESION_ID_MAP[l]||l}" style="border-color:${LESION_COLORS[l]};color:${LESION_COLORS[l]};">${l}</div>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div></div>
+  <div class="section-card"><div class="section-head" style="background:var(--navy);">📈 ÉVOLUTION DU TRAITEMENT</div><div class="section-body">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+      <span style="font-size:.85em;color:var(--text2);">Ajoutez des colonnes horaires</span>
+      <button class="btn btn-sm btn-outline" onclick="addEvoCols()">+ Ajouter une heure</button>
+    </div>
+    <div class="evolution-table-wrapper"><table class="evolution-table">
+      <thead><tr id="evoHeaderRow"><th>Paramètre</th></tr></thead>
+      <tbody id="evoBody">
+        <tr><td>Saturation O₂</td></tr><tr><td>Glycémie</td></tr><tr><td>TA (Tension artérielle)</td></tr>
+        <tr><td>Pulsations</td></tr><tr><td>Oxygène (L/min)</td></tr><tr><td>Médicament</td></tr>
+        <tr><td>Injection</td></tr><tr><td>Perfusion</td></tr>
+      </tbody>
+    </table></div>
+  </div></div>
+  <div class="section-card"><div class="section-head" style="background:var(--navy);">🧰 MATÉRIEL UTILISÉ</div><div class="section-body">
+    <div class="form-group"><textarea id="mMateriel" style="min-height:80px;" placeholder="Lister le matériel médical utilisé…" maxlength="500"></textarea></div>
+  </div></div>
+  <div class="actions-bar">
+    <button class="btn btn-cyan btn-lg" onclick="saveMedFiche()">💾 Sauvegarder la fiche médicale</button>
+    <button class="btn btn-ghost btn-lg" onclick="switchToMainPatientForm()">↩ Retour fiche principale</button>
+  </div>`;
+  updateBodySvgMed();updateMedZonesList();
+}
+function toggleYN(btn,field,val){btn.closest('.yn-item').querySelectorAll('.yn-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');_ynValues[field]=val;}
+function toggleAniso(){const cb=document.getElementById('mpAniso'),side=document.getElementById('anisoSide');if(cb&&side)cb.checked?side.classList.add('show'):side.classList.remove('show');}
+function updateGlasgow(){
+  const e=parseInt(getRadio('gYeux')||0),v=parseInt(getRadio('gVerbal')||0),m=parseInt(getRadio('gMoteur')||0);
+  const total=(e||0)+(v||0)+(m||0),el=document.getElementById('glasgowTotal');
+  if(e&&v&&m){el.textContent=total+' / 15';el.style.color=total<=8?'#ef4444':total<=12?'#f59e0b':'#10b981';}else{el.textContent='—';el.style.color='#fff';}
+}
+function addEvoCols(){
+  _evoColCount++;const hdr=document.getElementById('evoHeaderRow'),th=document.createElement('th');
+  th.innerHTML=`<input type="time" id="evoH_${_evoColCount}">`;hdr.appendChild(th);
+  const rows=['eSat','eGly','eTa','ePul','eOxy','eMed','eInj','ePer'];
+  document.querySelectorAll('#evoBody tr').forEach((row,i)=>{const td=document.createElement('td');td.innerHTML=`<input type="text" id="${rows[i]}_${_evoColCount}" maxlength="50">`;row.appendChild(td);});
+}
+function getEvoData(){if(!_evoColCount)return[];const rows=['eSat','eGly','eTa','ePul','eOxy','eMed','eInj','ePer'];const labels=['Saturation O₂','Glycémie','TA','Pulsations','Oxygène L/min','Médicament','Injection','Perfusion'];const result=[];for(let c=1;c<=_evoColCount;c++){const h=document.getElementById('evoH_'+c);const col={heure:h?h.value:''};rows.forEach((r,i)=>{const el=document.getElementById(r+'_'+c);col[labels[i]]=el?el.value:'';});result.push(col);}return result;}
+function setLesionMed(l){_activeLesionMed=l;document.querySelectorAll('#medLesionChips .lesion-chip').forEach(c=>c.classList.remove('selected'));const chip=document.getElementById('mlchip_'+(LESION_ID_MAP[l]||l));if(chip)chip.classList.add('selected');}
+function toggleBodyZoneMed(zone){if(!_bodyDataMed[zone])_bodyDataMed[zone]=[];const arr=_bodyDataMed[zone],idx=arr.indexOf(_activeLesionMed);idx===-1?arr.push(_activeLesionMed):arr.splice(idx,1);if(!arr.length)delete _bodyDataMed[zone];updateBodySvgMed();updateMedZonesList();}
+function updateBodySvgMed(){Object.entries(MED_ZONE_IDS).forEach(([zone,sid])=>{const el=document.getElementById(sid);if(!el)return;if(_bodyDataMed[zone]&&_bodyDataMed[zone].length>0){const colors=_bodyDataMed[zone].map(l=>LESION_COLORS[l]||'#ccc');el.setAttribute('fill',colors[0]);el.setAttribute('opacity','0.85');el.setAttribute('stroke',colors.length>1?colors[1]:'#94a3b8');el.setAttribute('stroke-width',colors.length>1?'3':'1.5');}else{el.setAttribute('fill','#e2e8f0');el.setAttribute('opacity','1');el.setAttribute('stroke','#94a3b8');el.setAttribute('stroke-width','1.5');}});}
+function updateMedZonesList(){const el=document.getElementById('medZonesList');if(!el)return;if(!Object.keys(_bodyDataMed).length){el.innerHTML='<div style="font-size:.78em;color:var(--text3);font-style:italic;">Aucune zone</div>';return;}let html='';Object.entries(_bodyDataMed).forEach(([zone,lesions])=>{lesions.forEach(lesion=>{const color=LESION_COLORS[lesion]||'#999';html+=`<span class="zone-badge" style="background:${color};">${zone} — ${lesion}<button onclick="removeMedZone('${zone}','${lesion}')">×</button></span>`;});});el.innerHTML=html;}
+function removeMedZone(zone,lesion){if(_bodyDataMed[zone]){_bodyDataMed[zone]=_bodyDataMed[zone].filter(l=>l!==lesion);if(!_bodyDataMed[zone].length)delete _bodyDataMed[zone];}updateBodySvgMed();updateMedZonesList();}
+function collectMedData(){
+  const motifs=[],mm=[['mAcc','Accidents circulation'],['mBag','Bagarre'],['mBru','Brûlure'],['mChu','Chute'],['mEle','Électrocution'],['mAlc','Intox. alcool'],['mAli','Intox. alimentaire'],['mCo','Intox. CO'],['mDro','Intox. drogue'],['mMed','Intox. médicamenteuse'],['mNoy','Noyade'],['mPla','Plaie pénétrante']];
+  mm.forEach(([id,label])=>{if(document.getElementById(id)?.checked)motifs.push(label);});
+  const aut=s(document.getElementById('mAutreMotif')?.value?.trim());if(aut)motifs.push('Autre: '+aut);
+  return{bilan_clinique:{agite:_ynValues.agite||null,convulsion:_ynValues.convulsion||null,cyanose:_ynValues.cyanose||null,deficit_moteur:_ynValues.deficit_moteur||null,inconscient:_ynValues.inconscient||null,resp_anormale:_ynValues.resp_anormale||null},pupilles:{normales:getChecked('mpNorm'),myosis:getChecked('mpMyos'),mydriase:getChecked('mpMydr'),anisocorie:getChecked('mpAniso'),anisocorie_g:getChecked('anisoG'),anisocorie_d:getChecked('anisoD'),reactives:getChecked('mpReact')},freq_respiratoire:getRadio('mFreqResp')||null,glasgow:{yeux:parseInt(getRadio('gYeux')||0)||null,verbal:parseInt(getRadio('gVerbal')||0)||null,moteur:parseInt(getRadio('gMoteur')||0)||null,total:(()=>{const e=parseInt(getRadio('gYeux')||0),v=parseInt(getRadio('gVerbal')||0),m=parseInt(getRadio('gMoteur')||0);return(e&&v&&m)?e+v+m:null;})()},motifs,arythmies:{bradycardie:getChecked('aryBrady'),tachycardie:getChecked('aryTachy'),asystolie:getChecked('aryAsys'),autre:s(document.getElementById('aryAutre')?.value?.trim())||null},bilan_remarque:s(document.getElementById('mBilanRem')?.value?.trim())||null,lesions_traumatiques:_bodyDataMed,evolution_traitement:getEvoData(),materiel_utilise:s(document.getElementById('mMateriel')?.value?.trim())||null};
+}
+async function saveMedFiche(){
+  if(!_user||!_ficheId){toast('Sauvegardez d\'abord la fiche patient','error');return;}
+  if(_medSaved){toast('Fiche médicale déjà sauvegardée.','info');switchToMainPatientForm();return;}
+  const medData=collectMedData();
+  const{error}=await sb.from('chlencodage_fiches_medicales').insert({user_id:_user.id,fiche_id:_ficheId,...medData});
+  if(error){toast('Erreur: '+error.message,'error');return;}
+  _medSaved=true;toast('✅ Fiche médicale sauvegardée !','success');
+  logAction('CREATE_FICHE_MEDICALE','patients',_ficheId,{});switchToMainPatientForm();
+}
+
+// FICHES LIST
+function renderFichesList(){
+  const canValidate=_profile?.role==='supervision'||_profile?.role==='direction';
+  return`<div class="page-header"><div><h2>📁 Mes Fiches Patients</h2><p>Gérez et consultez les fiches patients</p></div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="ficheSearch" placeholder="Rechercher…" oninput="filterFiches(this.value)"></div>
+      <select id="ficheStatutFilter" onchange="loadFichesList()" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--card);font-size:.88em;">
+        <option value="">Tous statuts</option><option value="brouillon">Brouillon</option><option value="soumis">Soumis</option><option value="valide">Validé</option><option value="refuse">Refusé</option>
+      </select>
+      <button class="btn btn-primary" onclick="navigateTo('patients')">+ Nouvelle Fiche</button>
+    </div></div>
+  <div id="fichesListContainer"></div>`;}
+let _fichesCache=[];
+async function loadFichesList(){
+  const container=document.getElementById('fichesListContainer');if(!container)return;
+  container.innerHTML='<div style="text-align:center;padding:40px;color:var(--text3);">⏳ Chargement…</div>';
+  let q=sb.from('chlencodage_fiches_patients').select('*,chlencodage_fiches_medicales(id)');
+  if(_profile?.role==='soignant')q=q.eq('user_id',_user.id);
+  const statutF=document.getElementById('ficheStatutFilter')?.value;if(statutF)q=q.eq('statut',statutF);
+  q=q.order('created_at',{ascending:false}).limit(100);
+  const{data,error}=await q;
+  if(error){container.innerHTML='<div class="empty-state"><div class="es-icon">❌</div><h3>Erreur: '+s(error.message)+'</h3></div>';return;}
+  _fichesCache=data||[];renderFichesListHTML(_fichesCache);
+}
+function filterFiches(q){if(!q.trim()){renderFichesListHTML(_fichesCache);return;}const ql=q.toLowerCase();renderFichesListHTML(_fichesCache.filter(f=>(f.patient_nom||'').toLowerCase().includes(ql)||(f.patient_prenom||'').toLowerCase().includes(ql)||(f.numero_patient||'').toLowerCase().includes(ql)));}
+function renderFichesListHTML(fiches){
+  const container=document.getElementById('fichesListContainer');if(!container)return;
+  const canValidate=_profile?.role==='supervision'||_profile?.role==='direction';
+  const stMap={brouillon:'status-brouillon',soumis:'status-soumis',valide:'status-valide',refuse:'status-refuse'};
+  const urg={U1:'badge-red',U2:'badge-orange',U3:'badge-green',implique:'badge-blue'};
+  if(!fiches.length){container.innerHTML='<div class="empty-state"><div class="es-icon">📋</div><h3>Aucune fiche trouvée</h3><p>Créez votre première fiche patient.</p></div>';return;}
+  container.innerHTML=fiches.map(f=>`<div class="fiche-item border-${f.statut}">
+    <div class="fiche-info">
+      <strong>${s(f.patient_nom||'?')} ${s(f.patient_prenom||'')}</strong>
+      ${f.urgence?`<span class="badge ${urg[f.urgence]||'badge-blue'}" style="margin-left:8px;">${f.urgence}</span>`:''}
+      ${f.chlencodage_fiches_medicales?.length?'<span class="badge badge-blue" style="margin-left:4px;">🏥 Méd.</span>':''}
+      <div class="fiche-meta">N°Pat: ${s(f.numero_patient||'—')} | ${fmtDate(f.in_date)} | ${fmtDateTime(f.created_at)}</div>
+      ${f.supervisor_comment?`<div class="fiche-meta" style="color:var(--warning);">💬 ${s(f.supervisor_comment)}</div>`:''}
+      ${f.rejection_reason?`<div class="fiche-meta" style="color:var(--danger);">❌ ${s(f.rejection_reason)}</div>`:''}
+    </div>
+    <div class="fiche-btns">
+      <span class="status-badge ${stMap[f.statut]||''}">${f.statut}</span>
+      <button class="btn btn-sm btn-outline" onclick="viewFiche('${f.id}')">👁️ Voir</button>
+      ${f.statut==='brouillon'?`<button class="btn btn-sm btn-cyan" onclick="submitFiche('${f.id}')">📤 Soumettre</button>`:''}
+      ${canValidate&&f.statut==='soumis'?`<button class="btn btn-sm btn-success" onclick="openValidation('${f.id}','valide')">✅</button><button class="btn btn-sm btn-danger" onclick="openValidation('${f.id}','refuse')">❌</button>`:''}
+      ${_profile?.role==='direction'?`<button class="btn btn-sm btn-danger" onclick="openDelete('${f.id}','${s(f.patient_nom||'?')} ${s(f.patient_prenom||'')}',deleteFicheById)">🗑️</button>`:''}
+    </div></div>`).join('');}
+async function submitFiche(id){const{error}=await sb.from('chlencodage_fiches_patients').update({statut:'soumis'}).eq('id',id);if(error){toast('Erreur: '+error.message,'error');return;}toast('✅ Fiche soumise.','success');logAction('SUBMIT_FICHE','fiches',id,{});loadFichesList();}
+// VALIDATION
+function openValidation(ficheId,action){
+  _validationAction=action;_validationTarget=ficheId;
+  const head=document.getElementById('valModalHead'),title=document.getElementById('valModalTitle');
+  const desc=document.getElementById('valModalDesc'),btn=document.getElementById('btnConfirmVal');
+  const refusal=document.getElementById('valRefusalReason');
+  if(action==='valide'){head.style.background='var(--navy)';title.textContent='✅ Valider la fiche';desc.textContent='Vous allez valider cette fiche.';btn.className='btn btn-success';btn.textContent='✅ Confirmer';refusal.style.display='none';}
+  else{head.style.background='var(--danger)';title.textContent='❌ Refuser la fiche';desc.textContent='Un motif de refus est obligatoire.';btn.className='btn btn-danger';btn.textContent='❌ Confirmer le refus';refusal.style.display='';}
+  document.getElementById('valComment').value='';if(document.getElementById('valReason'))document.getElementById('valReason').value='';
+  document.getElementById('validationModal').style.display='flex';
+}
+function closeValidationModal(){document.getElementById('validationModal').style.display='none';_validationTarget=null;_validationAction=null;}
+async function executeValidation(){
+  if(!_validationTarget||!_validationAction)return;
+  const comment=document.getElementById('valComment')?.value?.trim();const reason=document.getElementById('valReason')?.value?.trim();
+  if(_validationAction==='refuse'&&!reason){toast('Le motif de refus est obligatoire.','error');return;}
+  const upd={statut:_validationAction,validated_by:_user.id,validated_at:new Date().toISOString()};
+  if(comment)upd.supervisor_comment=s(comment);if(_validationAction==='refuse'&&reason)upd.rejection_reason=s(reason);
+  const{error}=await sb.from('chlencodage_fiches_patients').update(upd).eq('id',_validationTarget);
+  if(error){toast('Erreur: '+error.message,'error');return;}
+  closeValidationModal();toast(_validationAction==='valide'?'✅ Fiche validée.':'❌ Fiche refusée.','success');
+  logAction(_validationAction==='valide'?'VALIDATE_FICHE':'REFUSE_FICHE','fiches',_validationTarget,{comment,reason});loadFichesList();
+}
+// DELETE
+const DELETE_PHRASES=['SUPPRIMER','EFFACER','CONFIRMER'];
+function openDelete(id,name,fn){
+  _deleteTarget=id;_deleteFn=fn;const phrase=DELETE_PHRASES[~~(Math.random()*3)];
+  document.getElementById('deletePhrase').textContent=phrase;document.getElementById('deletePhrase').dataset.p=phrase;
+  document.getElementById('deleteInput').value='';document.getElementById('btnConfirmDelete').disabled=true;
+  document.getElementById('deleteSteps').style.display='none';
+  document.getElementById('deleteDesc').innerHTML=`Suppression définitive de <strong>${s(name)}</strong>. Action irréversible.`;
+  document.getElementById('deleteModal').style.display='flex';
+}
+function closeDeleteModal(){_deleteTarget=null;_deleteFn=null;document.getElementById('deleteModal').style.display='none';}
+function checkDeleteConfirm(){const v=document.getElementById('deleteInput').value,p=document.getElementById('deletePhrase').dataset.p;document.getElementById('btnConfirmDelete').disabled=v!==p;}
+async function executeDelete(){if(_deleteFn&&_deleteTarget)await _deleteFn(_deleteTarget);}
+async function deleteFicheById(id){
+  document.getElementById('btnConfirmDelete').disabled=true;document.getElementById('deleteSteps').style.display='flex';
+  function step(n,st){const el=document.getElementById('ds'+n);if(el){el.className='step-icon step-'+st;el.textContent=st==='done'?'✓':n;}}
+  step(1,'active');await sb.from('chlencodage_fiche_soignants').delete().eq('fiche_id',id);step(1,'done');
+  step(2,'active');await sb.from('chlencodage_fiches_medicales').delete().eq('fiche_id',id);step(2,'done');
+  step(3,'active');const{error}=await sb.from('chlencodage_fiches_patients').delete().eq('id',id);
+  if(error){toast('Erreur: '+error.message,'error');return;}
+  step(3,'done');await new Promise(r=>setTimeout(r,600));closeDeleteModal();toast('✅ Fiche supprimée.','success');logAction('DELETE_FICHE','fiches',id,{});loadFichesList();
+}
+// VIEW FICHE — rendu enrichi
+let _ficheViewData=null,_ficheViewHasMed=false;
+
+function _heroHeader(data,kind){
+  const initials=((data.patient_nom||'?')[0]+(data.patient_prenom||'')[0]).toUpperCase();
+  const stMap={brouillon:'badge-blue',soumis:'badge-orange',valide:'badge-green',refuse:'badge-red'};
+  const age=data.date_naissance?Math.floor((Date.now()-new Date(data.date_naissance).getTime())/31557600000):null;
+  const kindLabel=kind==='med'?'🏥 Fiche Médicale':'👤 Fiche Patient';
+  const kindColor=kind==='med'?'linear-gradient(135deg,#0891b2,#06b6d4)':'linear-gradient(135deg,var(--navy),#3b5fb5)';
+  return '<div style="background:'+kindColor+';color:#fff;border-radius:var(--radius);padding:18px 22px;margin-bottom:18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 4px 18px rgba(13,26,58,.25);">'
+    +'<div style="width:58px;height:58px;border-radius:50%;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:1.4em;font-weight:800;flex-shrink:0;">'+s(initials)+'</div>'
+    +'<div style="flex:1;min-width:200px;">'
+    +'<div style="font-size:.72em;text-transform:uppercase;letter-spacing:1px;opacity:.75;font-weight:700;">'+kindLabel+'</div>'
+    +'<div style="font-size:1.25em;font-weight:800;margin-top:2px;">'+s(data.patient_nom||'—')+' '+s(data.patient_prenom||'')+'</div>'
+    +'<div style="font-size:.82em;opacity:.85;margin-top:3px;">'
+    +(data.sexe?s(data.sexe)+' · ':'')+(age!==null?age+' ans · ':'')
+    +(data.numero_patient?'N° '+s(data.numero_patient):'')
+    +'</div></div>'
+    +'<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">'
+    +(data.statut?'<span class="badge '+(stMap[data.statut]||'')+'" style="background:rgba(255,255,255,.95);">'+s(data.statut)+'</span>':'')
+    +(data.urgence?'<span class="badge badge-red" style="background:rgba(255,255,255,.95);">⚠ '+s(data.urgence)+'</span>':'')
+    +'<span style="font-size:.72em;opacity:.8;">'+fmtDateTime(data.created_at)+'</span>'
+    +'</div></div>';
+}
+
+function _section(title,inner){
+  return '<div class="modal-section"><div class="modal-section-title">'+title+'</div>'+inner+'</div>';
+}
+function _fld(label,value){
+  return '<div class="modal-field"><div class="lbl">'+s(label)+'</div><div class="val">'+(value==null||value===''?'—':value)+'</div></div>';
+}
+function _ynBadge(v){
+  if(v==='oui'||v===true)return '<span class="badge badge-red">OUI</span>';
+  if(v==='non'||v===false)return '<span class="badge badge-green">NON</span>';
+  return '<span style="color:var(--text3);">—</span>';
+}
+
+async function viewFiche(id){
+  _ficheViewId=id;
+  const[patRes,sgRes,medRes]=await Promise.all([
+    sb.from('chlencodage_fiches_patients').select('*').eq('id',id).single(),
+    sb.from('chlencodage_fiche_soignants').select('*').eq('fiche_id',id),
+    sb.from('chlencodage_fiches_medicales').select('id').eq('fiche_id',id).maybeSingle()
+  ]);
+  if(patRes.error||!patRes.data){toast('Erreur de chargement','error');return;}
+  const data=patRes.data;
+  data.chlencodage_fiche_soignants=sgRes.data||[];
+  _ficheViewData=data;
+  _ficheViewHasMed=!!(medRes&&medRes.data&&medRes.data.id);
+  document.getElementById('ficheViewTitle').textContent='Dossier · '+s(data.patient_nom||'?')+' '+s(data.patient_prenom||'');
+  document.getElementById('ficheViewMedBtn').style.display=_ficheViewHasMed?'inline-block':'none';
+  document.getElementById('ficheViewPatBtn').style.display='none';
+
+  const bilanData=data.bilan_tableau||{};const soins=data.soins||{};
+  const soinsLabels={plaies:'Soin de plaies',pansement:'Pansement',attelle:'Attelle',matelas_depression:'Matelas dépression',compression:'Compression',bandage:'Bandage',collier_cervical:'Collier Cervical',repos_surveillance:'Repos/Surveillance'};
+  const soinsArr=Object.keys(soins).filter(k=>soins[k]);
+  const soinsHtml=soinsArr.length?soinsArr.map(k=>'<span class="modal-tag">✓ '+s(soinsLabels[k]||k)+'</span>').join(''):'<span style="color:var(--text3);font-style:italic;">Aucun soin</span>';
+  const mat=data.materiel||{};
+  const matHtml=Object.keys(mat).length?'<div class="modal-grid">'+Object.keys(mat).map(k=>_fld(k,'×'+s(String(mat[k])))).join('')+'</div>':'<span style="color:var(--text3);font-style:italic;">Aucun matériel</span>';
+  const sgs=data.chlencodage_fiche_soignants||[];
+  const sgsHtml=sgs.length?'<div class="modal-grid">'+sgs.map(g=>_fld(g.nom||'—',(g.is_medecin?'👨‍⚕️ Médecin ':'')+(g.is_infirmier?'💉 Infirmier ':'')||'—')).join('')+'</div>':'<span style="color:var(--text3);font-style:italic;">Aucun soignant</span>';
+  let lesionHtml='<span style="color:var(--text3);font-style:italic;">Aucune lésion</span>';
+  if(Object.keys(bilanData).length>0){
+    lesionHtml='<div style="display:flex;flex-wrap:wrap;gap:6px;">'+Object.entries(bilanData).map(([zone,lesions])=>(lesions||[]).map(l=>{const color=LESION_COLORS[String(l).split(':')[0].trim()]||'#64748b';return'<span class="modal-tag" style="background:'+color+';color:#fff;">'+s(zone)+' — '+s(l)+'</span>';}).join('')).join('')+'</div>';
+  }
+  const arr=[];if(data.in_spontanee)arr.push('Spontanée');if(data.in_via_equipe)arr.push('Via équipe');if(data.in_via_ambulance)arr.push('Ambulance'+(data.in_num_ambulance?' '+s(data.in_num_ambulance):''));if(data.in_autre_moyen)arr.push(s(data.in_autre_moyen));
+  const arrivHtml=arr.length?arr.map(a=>'<span class="modal-tag">'+a+'</span>').join(''):'<span style="color:var(--text3);">—</span>';
+  const out=[];if(data.out_retour_normal)out.push('Retour normal');if(data.out_refus_soins)out.push('Refus de soins');if(data.out_evacuation_vsl)out.push('Évacuation VSL');if(data.out_evacuation_ambulance)out.push('Évacuation ambulance');
+  const outHtml=out.length?out.map(a=>'<span class="modal-tag">'+a+'</span>').join(''):'<span style="color:var(--text3);">—</span>';
+
+  const body=document.getElementById('ficheViewBody');
+  body.innerHTML=_heroHeader(data,'pat')
+    +(data.supervisor_comment?'<div style="background:rgba(245,158,11,.08);border-left:3px solid var(--warning);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;font-size:.85em;color:#92400e;">💬 <strong>Superviseur :</strong> '+s(data.supervisor_comment)+'</div>':'')
+    +(data.rejection_reason?'<div style="background:rgba(239,68,68,.08);border-left:3px solid var(--danger);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;font-size:.85em;color:#991b1b;">❌ <strong>Motif refus :</strong> '+s(data.rejection_reason)+'</div>':'')
+    +(_ficheViewHasMed?'<div style="background:rgba(0,194,212,.08);border:1px dashed var(--cyan);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;font-size:.85em;color:var(--cyan-dark);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">🏥 <span>Une fiche médicale est associée à ce dossier.</span><button class="btn btn-sm btn-cyan" onclick="viewMedicalFiche(_ficheViewId)">Voir la fiche médicale →</button></div>':'')
+    +_section('👤 Identité patient','<div class="modal-grid">'
+      +_fld('Nom',s(data.patient_nom||'—'))
+      +_fld('Prénom',s(data.patient_prenom||'—'))
+      +_fld('Naissance',fmtDate(data.date_naissance))
+      +_fld('Sexe',s(data.sexe||'—'))
+      +_fld('Mineur',data.est_mineur?'Oui':'Non')
+      +_fld('Téléphone',s(data.telephone||'—'))
+      +_fld('N° Patient',s(data.numero_patient||'—'))
+      +_fld('N° CL',s(data.numero_cl||'—'))
+      +_fld('N° ODIN',s(data.numero_odin||'—'))
+      +_fld('Adresse',s(data.adresse||'—'))
+      +'</div>')
+    +_section('🚪 Arrivée','<div class="modal-grid">'
+      +_fld('Date IN',fmtDate(data.in_date))
+      +_fld('Heure IN',s(data.heure_in||'—'))
+      +'</div><div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">'+arrivHtml+'</div>')
+    +_section('🏃 Sortie','<div class="modal-grid">'
+      +_fld('Heure OUT',s(data.heure_out||'—'))
+      +'</div><div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">'+outHtml+'</div>')
+    +_section('⚡ Bilan vital','<div class="modal-grid">'
+      +_fld('Conscience',_ynBadge(data.conscience))
+      +_fld('Respiration',_ynBadge(data.respiration))
+      +_fld('Circulation',_ynBadge(data.circulation))
+      +_fld('Hémorragie',data.hemorragie?'<span class="badge badge-red">'+s(data.hemorragie)+'</span>':'—')
+      +'</div>')
+    +_section('🩹 Bilan lésionnel',lesionHtml+(data.autre_lesion_precision?'<div style="margin-top:8px;font-size:.85em;color:var(--text2);"><strong>Autre :</strong> '+s(data.autre_lesion_precision)+'</div>':''))
+    +_section('💊 Soins prodigués','<div style="display:flex;flex-wrap:wrap;gap:6px;">'+soinsHtml+'</div>'+(data.autres_soins?'<div style="margin-top:8px;font-size:.85em;color:var(--text2);"><strong>Autres :</strong> '+s(data.autres_soins)+'</div>':''))
+    +_section('📦 Matériel utilisé',matHtml)
+    +_section('🩺 Équipe soignante',sgsHtml);
+  document.getElementById('ficheViewModal').style.display='flex';
+}
+function closeFicheViewModal(){document.getElementById('ficheViewModal').style.display='none';_ficheViewId=null;_ficheViewData=null;}
+function _printFallback(title,innerHTML){
+  var w=window.open('','_blank','width=900,height=1200');
+  if(!w){toast('Pop-up bloquée — autorise les pop-ups pour exporter','error');return;}
+  w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>'+title+'</title>'
+    +'<style>body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#1a1a1a;padding:24px;background:#fff;}'
+    +'h1,h2,h3{color:#0a1532;}table{border-collapse:collapse;width:100%;margin:8px 0;}th,td{border:1px solid #cbd5e1;padding:6px 8px;font-size:.85em;text-align:left;}th{background:#f1f5f9;}'
+    +'.modal-tag{display:inline-block;background:#e2e8f0;color:#1e293b;padding:3px 8px;border-radius:12px;font-size:.78em;margin:2px;}'
+    +'.modal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin:6px 0;}'
+    +'.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:.75em;font-weight:700;}'
+    +'.badge-red{background:#fee2e2;color:#991b1b;}.badge-green{background:#d1fae5;color:#065f46;}.badge-orange{background:#fed7aa;color:#9a3412;}'
+    +'@media print{button{display:none!important;}}</style></head><body>'
+    +'<div style="background:linear-gradient(135deg,#0a1532,#1a2f6b);color:#fff;padding:18px 22px;border-radius:10px;margin-bottom:16px;"><h1 style="margin:0;color:#fff;font-size:1.3em;">'+title+'</h1><div style="font-size:.78em;opacity:.85;margin-top:4px;">CHL — '+new Date().toLocaleString('fr-BE')+'</div></div>'
+    +innerHTML
+    +'<script>window.onload=function(){setTimeout(function(){window.print();},300);};<\/script></body></html>');
+  w.document.close();
+  toast('🖨️ Fenêtre d\'impression ouverte — choisis "Enregistrer au format PDF"','success');
+}
+function exportFichePDF(){
+  var body=document.getElementById('ficheViewBody');
+  var title=(document.getElementById('ficheViewTitle')||{}).textContent||'Fiche';
+  if(!body||!body.innerHTML.trim()){toast('Aucune fiche à exporter','error');return;}
+  // Si html2pdf indisponible, fallback impression directe (plus fiable)
+  if(typeof html2pdf==='undefined'){_printFallback(title,body.innerHTML);return;}
+  var safeName=(title||'fiche').replace(/[^a-z0-9-_]+/gi,'_').toLowerCase();
+  var headerHTML='<div style="background:linear-gradient(135deg,#0a1532,#1a2f6b);color:#fff;padding:18px 22px;border-radius:10px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;"><h1 style="margin:0;font-size:1.4em;font-weight:800;color:#fff;">'+title+'</h1><div style="font-size:.78em;opacity:.85;">CHL — '+new Date().toLocaleString('fr-BE')+'</div></div>';
+  var wrap=document.createElement('div');
+  wrap.style.cssText='padding:24px;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#1a1a1a;background:#fff;width:794px;position:fixed;left:-10000px;top:0;z-index:-1;';
+  wrap.innerHTML=headerHTML+body.innerHTML;
+  wrap.querySelectorAll('*').forEach(function(el){
+    var st=el.getAttribute('style')||'';
+    if(/position\s*:\s*(fixed|sticky)/i.test(st))el.setAttribute('style',st.replace(/position\s*:\s*(fixed|sticky)\s*;?/gi,''));
+  });
+  document.body.appendChild(wrap);
+  toast('📄 Génération du PDF...','info');
+  var opt={margin:[10,10,10,10],filename:'CHL_'+safeName+'_'+new Date().toISOString().slice(0,10)+'.pdf',image:{type:'jpeg',quality:0.96},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}};
+  try{
+    var p=html2pdf().set(opt).from(wrap).save();
+    if(p&&p.then){
+      p.then(function(){document.body.removeChild(wrap);toast('✅ PDF téléchargé','success');})
+       .catch(function(e){try{document.body.removeChild(wrap);}catch(_){}console.error('PDF err',e);_printFallback(title,body.innerHTML);});
+    }else{
+      setTimeout(function(){try{document.body.removeChild(wrap);}catch(_){}},2000);
+    }
+  }catch(e){
+    console.error('PDF exception',e);
+    try{document.body.removeChild(wrap);}catch(_){}
+    _printFallback(title,body.innerHTML);
+  }
+}
+
+async function viewMedicalFiche(ficheId){
+  if(!ficheId)return;
+  const{data,error}=await sb.from('chlencodage_fiches_medicales').select('*').eq('fiche_id',ficheId).maybeSingle();
+  if(error||!data){toast('Aucune fiche médicale','info');return;}
+  // S'assurer qu'on a les infos patient
+  if(!_ficheViewData||_ficheViewId!==ficheId){
+    const r=await sb.from('chlencodage_fiches_patients').select('*').eq('id',ficheId).single();
+    if(r.data)_ficheViewData=r.data;
+  }
+  _ficheViewId=ficheId;
+  const pat=_ficheViewData||{patient_nom:'?',patient_prenom:''};
+  document.getElementById('ficheViewTitle').textContent='Fiche Médicale · '+s(pat.patient_nom||'?')+' '+s(pat.patient_prenom||'');
+  document.getElementById('ficheViewPatBtn').style.display='inline-block';
+  document.getElementById('ficheViewMedBtn').style.display='none';
+
+  const bc=data.bilan_clinique||{};
+  const pup=data.pupilles||{};
+  const glas=data.glasgow||{};
+  const ary=data.arythmies||{};
+  const lt=data.lesions_traumatiques||{};
+  const evo=data.evolution_traitement||[];
+  const motifs=data.motifs||[];
+
+  // Bilan clinique
+  const bcLabels={agite:'Agité',convulsion:'Convulsion',cyanose:'Cyanose',deficit_moteur:'Déficit moteur',inconscient:'Inconscient',resp_anormale:'Respiration anormale'};
+  const bcHtml='<div class="modal-grid">'+Object.keys(bcLabels).map(k=>_fld(bcLabels[k],_ynBadge(bc[k]))).join('')+'</div>';
+
+  // Pupilles
+  const pupArr=[];
+  if(pup.normales)pupArr.push('Normales');
+  if(pup.myosis)pupArr.push('Myosis');
+  if(pup.mydriase)pupArr.push('Mydriase');
+  if(pup.reactives)pupArr.push('Réactives');
+  if(pup.anisocorie){let a='Anisocorie';if(pup.anisocorie_g)a+=' (G)';if(pup.anisocorie_d)a+=' (D)';pupArr.push(a);}
+  const pupHtml=pupArr.length?pupArr.map(p=>'<span class="modal-tag">👁 '+s(p)+'</span>').join(''):'<span style="color:var(--text3);font-style:italic;">Non renseigné</span>';
+
+  // Glasgow
+  let glasColor='#10b981',glasLabel='Normal';
+  if(glas.total!=null){if(glas.total<=8){glasColor='#ef4444';glasLabel='Sévère';}else if(glas.total<=12){glasColor='#f59e0b';glasLabel='Modéré';}}
+  const glasHtml=glas.total!=null
+    ?'<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;"><div style="background:'+glasColor+';color:#fff;border-radius:12px;padding:14px 22px;font-size:1.6em;font-weight:800;min-width:110px;text-align:center;">'+glas.total+' / 15<div style="font-size:.45em;font-weight:600;opacity:.9;margin-top:2px;letter-spacing:1px;">'+glasLabel.toUpperCase()+'</div></div><div class="modal-grid" style="flex:1;min-width:240px;">'+_fld('Yeux',glas.yeux||'—')+_fld('Verbal',glas.verbal||'—')+_fld('Moteur',glas.moteur||'—')+'</div></div>'
+    :'<span style="color:var(--text3);font-style:italic;">Non évalué</span>';
+
+  // Motifs
+  const motifsHtml=motifs.length?motifs.map(m=>'<span class="modal-tag" style="background:rgba(239,68,68,.1);color:var(--danger);">⚠ '+s(m)+'</span>').join(''):'<span style="color:var(--text3);font-style:italic;">Aucun motif renseigné</span>';
+
+  // Arythmies
+  const aryArr=[];
+  if(ary.bradycardie)aryArr.push('Bradycardie');
+  if(ary.tachycardie)aryArr.push('Tachycardie');
+  if(ary.asystolie)aryArr.push('Asystolie');
+  if(ary.autre)aryArr.push(ary.autre);
+  const aryHtml=aryArr.length?aryArr.map(a=>'<span class="modal-tag" style="background:rgba(124,58,237,.1);color:var(--purple);">💓 '+s(a)+'</span>').join(''):'<span style="color:var(--text3);font-style:italic;">Aucune arythmie</span>';
+
+  // Lésions traumatiques
+  let ltHtml='<span style="color:var(--text3);font-style:italic;">Aucune lésion</span>';
+  if(Object.keys(lt).length){
+    ltHtml='<div style="display:flex;flex-wrap:wrap;gap:6px;">'+Object.entries(lt).map(([zone,lesions])=>(lesions||[]).map(l=>{const color=(typeof LESION_COLORS!=='undefined'&&LESION_COLORS[l])||'#64748b';return'<span class="modal-tag" style="background:'+color+';color:#fff;">'+s(zone)+' — '+s(l)+'</span>';}).join('')).join('')+'</div>';
+  }
+
+  // Évolution / traitement (table)
+  let evoHtml='<span style="color:var(--text3);font-style:italic;">Aucune mesure d\'évolution</span>';
+  if(evo.length){
+    const keys=Object.keys(evo[0]).filter(k=>k!=='heure');
+    evoHtml='<div class="table-wrapper" style="margin-top:4px;"><table class="data-table"><thead><tr><th>Paramètre</th>'
+      +evo.map(c=>'<th style="text-align:center;">'+s(c.heure||'—')+'</th>').join('')
+      +'</tr></thead><tbody>'
+      +keys.map(k=>'<tr><td style="font-weight:700;color:var(--navy);">'+s(k)+'</td>'+evo.map(c=>'<td style="text-align:center;font-family:var(--mono);">'+s(c[k]||'—')+'</td>').join('')+'</tr>').join('')
+      +'</tbody></table></div>';
+  }
+
+  const body=document.getElementById('ficheViewBody');
+  body.innerHTML=_heroHeader(pat,'med')
+    +'<div style="background:rgba(0,194,212,.08);border:1px dashed var(--cyan);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;font-size:.85em;color:var(--cyan-dark);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">👤 <span>Données médicales complémentaires à la fiche patient.</span><button class="btn btn-sm btn-outline" onclick="viewFiche(_ficheViewId)">← Retour fiche patient</button></div>'
+    +_section('⚠️ Motifs d\'intervention','<div style="display:flex;flex-wrap:wrap;gap:6px;">'+motifsHtml+'</div>')
+    +_section('🩺 Bilan clinique',bcHtml)
+    +_section('🧠 Score de Glasgow',glasHtml)
+    +_section('👁 Pupilles','<div style="display:flex;flex-wrap:wrap;gap:6px;">'+pupHtml+'</div>')
+    +_section('🫁 Fréquence respiratoire','<div class="modal-grid">'+_field('FR',data.freq_respiratoire?s(data.freq_respiratoire):'—')+'</div>')
+    +_section('💓 Arythmies','<div style="display:flex;flex-wrap:wrap;gap:6px;">'+aryHtml+'</div>')
+    +_section('🩸 Lésions traumatiques',ltHtml)
+    +_section('📈 Évolution / Traitement',evoHtml)
+    +(data.materiel_utilise?_section('📦 Matériel utilisé','<div style="background:var(--bg);padding:10px 14px;border-radius:var(--radius-sm);font-size:.9em;white-space:pre-wrap;">'+s(data.materiel_utilise)+'</div>'):'')
+    +(data.bilan_remarque?_section('📝 Remarques','<div style="background:var(--bg);padding:10px 14px;border-radius:var(--radius-sm);font-size:.9em;white-space:pre-wrap;font-style:italic;">'+s(data.bilan_remarque)+'</div>'):'');
+  document.getElementById('ficheViewModal').style.display='flex';
+}
+
+// ================================================
+// GENERIC MODULE HELPERS — BUG FIX #8 : .modal → .modal-box
+// ================================================
+function _renderSimpleModule(opts){
+  return ''
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;">'
+    +'<div><h2 style="margin:0;color:var(--navy);">'+opts.icon+' '+s(opts.title)+'</h2><p style="margin:4px 0 0;color:var(--text2);font-size:.88em;">'+s(opts.desc)+'</p></div>'
+    +'<button class="btn btn-cyan" onclick="'+opts.openFn+'()">+ Nouveau</button></div>'
+    +'<div id="'+opts.listId+'" class="card" style="padding:0;overflow:hidden;"><div style="padding:40px;text-align:center;color:var(--text3);">⏳ Chargement…</div></div>'
+    +'<div class="modal-overlay" id="'+opts.modalId+'" style="display:none;" onclick="if(event.target===this)document.getElementById(\''+opts.modalId+'\').style.display=\'none\'">'
+    +'<div class="modal-box" style="max-width:640px;"><div class="modal-head"><h2>'+opts.icon+' Nouveau — '+s(opts.title)+'</h2><button class="modal-close" onclick="document.getElementById(\''+opts.modalId+'\').style.display=\'none\'">×</button></div>'
+    +'<div class="modal-body"><form id="'+opts.formId+'" onsubmit="event.preventDefault();'+opts.saveFn+'();">'
+    +opts.formHtml
+    +'<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px;"><button type="button" class="btn btn-ghost" onclick="document.getElementById(\''+opts.modalId+'\').style.display=\'none\'">Annuler</button>'
+    +'<button type="submit" class="btn btn-cyan">💾 Enregistrer</button></div></form></div></div></div>';
+}
+
+function _renderRows(rows,cols,emptyMsg){
+  if(!rows||!rows.length)return'<div class="empty-state" style="padding:48px;"><div class="es-icon">📭</div><p>'+s(emptyMsg||'Aucun élément')+'</p></div>';
+  let h='<div class="table-scroll"><table class="table"><thead><tr>';
+  cols.forEach(function(c){h+='<th>'+s(c.label)+'</th>';});
+  h+='</tr></thead><tbody>';
+  rows.forEach(function(r){
+    h+='<tr>';
+    cols.forEach(function(c){let v=c.fmt?c.fmt(r[c.key],r):r[c.key];h+='<td>'+(v==null?'—':v)+'</td>';});
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
+  return h;
+}
+function _field(id,label,type,extra){type=type||'text';extra=extra||'';if(type==='textarea')return'<div class="form-group"><label>'+s(label)+'</label><textarea id="'+id+'" rows="3" '+extra+'></textarea></div>';return'<div class="form-group"><label>'+s(label)+'</label><input type="'+type+'" id="'+id+'" '+extra+'></div>';}
+function _val(id){const e=document.getElementById(id);return e?e.value.trim():'';}
+function _modalClose(id){const el=document.getElementById(id);if(el)el.style.display='none';}
+
+
+// ================================================
+// MODULES SIMPLES
+// ================================================
+function renderRefusSoins(){return _renderSimpleModule({title:'Refus de Soins',icon:'🚫',desc:'Patients ayant refusé les soins.',openFn:'openRefusModal',saveFn:'saveRefus',listId:'refusList',modalId:'refusModal',formId:'refusForm',formHtml:_field('rfNom','Nom du patient*')+_field('rfPrenom','Prénom*')+_field('rfNaiss','Date de naissance','date')+_field('rfDate','Date du refus*','datetime-local')+_field('rfMotif','Motif du refus*','textarea')+_field('rfTemoin','Témoin (optionnel)')});}
+function openRefusModal(){document.getElementById('refusModal').style.display='flex';document.getElementById('rfDate').value=new Date().toISOString().slice(0,16);}
+async function saveRefus(){const p={created_by:_user.id,patient_nom:s(_val('rfNom')),patient_prenom:s(_val('rfPrenom')),date_naissance:_val('rfNaiss')||null,date_refus:_val('rfDate')||new Date().toISOString(),motif:s(_val('rfMotif')),temoin:s(_val('rfTemoin'))};if(!p.patient_nom||!p.motif){toast('Champs requis manquants','error');return;}const{error}=await sb.from('chlencodage_refus_soins').insert(p);if(error){toast('Erreur: '+error.message,'error');return;}_modalClose('refusModal');toast('✅ Refus enregistré','success');logAction('CREATE_REFUS','refus_soins',null,p);loadRefusSoins();}
+async function loadRefusSoins(){const{data}=await sb.from('chlencodage_refus_soins').select('*').order('created_at',{ascending:false}).limit(100);document.getElementById('refusList').innerHTML=_renderRows(data,[{key:'patient_nom',label:'Nom'},{key:'patient_prenom',label:'Prénom'},{key:'date_refus',label:'Date',fmt:fmtDateTime},{key:'motif',label:'Motif',fmt:function(v){return s(String(v||'').slice(0,80));}}],'Aucun refus enregistré');}
+
+function renderImpayes(){return _renderSimpleModule({title:'Impayés',icon:'💸',desc:'Suivi des factures non réglées.',openFn:'openImpayeModal',saveFn:'saveImpaye',listId:'impayesList',modalId:'impayeModal',formId:'impayeForm',formHtml:_field('imNom','Nom*')+_field('imPrenom','Prénom*')+_field('imMontant','Montant (€)*','number','step="0.01" min="0"')+_field('imRef','Référence facture')+_field('imDate','Date facture*','date')+_field('imNote','Notes','textarea')});}
+function openImpayeModal(){document.getElementById('impayeModal').style.display='flex';document.getElementById('imDate').value=new Date().toISOString().slice(0,10);}
+async function saveImpaye(){const p={created_by:_user.id,patient_nom:s(_val('imNom')),patient_prenom:s(_val('imPrenom')),montant:parseFloat(_val('imMontant'))||0,reference_facture:s(_val('imRef')),date_facture:_val('imDate')||null,notes:s(_val('imNote')),statut:'en_attente'};if(!p.patient_nom||!p.montant){toast('Champs requis manquants','error');return;}const{error}=await sb.from('chlencodage_impayes').insert(p);if(error){toast('Erreur: '+error.message,'error');return;}_modalClose('impayeModal');toast('✅ Impayé enregistré','success');logAction('CREATE_IMPAYE','impayes',null,p);loadImpayes();}
+async function loadImpayes(){const{data}=await sb.from('chlencodage_impayes').select('*').order('created_at',{ascending:false}).limit(100);document.getElementById('impayesList').innerHTML=_renderRows(data,[{key:'patient_nom',label:'Nom'},{key:'patient_prenom',label:'Prénom'},{key:'montant',label:'Montant',fmt:function(v){return'<strong style="color:var(--danger);">'+Number(v||0).toFixed(2)+' €</strong>';}},{key:'date_facture',label:'Date',fmt:fmtDate},{key:'statut',label:'Statut',fmt:function(v){return'<span class="badge badge-orange">'+s(v||'—')+'</span>';}}],'Aucun impayé');}
+
+function renderSoinsPolice(){return _renderSimpleModule({title:'Soins Police',icon:'🚔',desc:'Interventions sur réquisition policière.',openFn:'openSoinsPolModal',saveFn:'saveSoinsPol',listId:'soinsPolList',modalId:'soinsPolModal',formId:'soinsPolForm',formHtml:_field('spNom','Nom du patient*')+_field('spPrenom','Prénom*')+_field('spDate','Date*','datetime-local')+_field('spZone','Zone police')+_field('spReq','N° réquisition')+_field('spAgent','Agent requérant')+_field('spMotif','Motif intervention','textarea')});}
+function openSoinsPolModal(){document.getElementById('soinsPolModal').style.display='flex';document.getElementById('spDate').value=new Date().toISOString().slice(0,16);}
+async function saveSoinsPol(){const p={created_by:_user.id,patient_nom:s(_val('spNom')),patient_prenom:s(_val('spPrenom')),date_intervention:_val('spDate')||new Date().toISOString(),zone_police:s(_val('spZone')),numero_requisition:s(_val('spReq')),agent_requerant:s(_val('spAgent')),motif:s(_val('spMotif'))};if(!p.patient_nom){toast('Nom requis','error');return;}const{error}=await sb.from('chlencodage_soins_police').insert(p);if(error){toast('Erreur: '+error.message,'error');return;}_modalClose('soinsPolModal');toast('✅ Enregistré','success');logAction('CREATE_SOINS_POL','soins_police',null,p);loadSoinsPolice();}
+async function loadSoinsPolice(){const{data}=await sb.from('chlencodage_soins_police').select('*').order('created_at',{ascending:false}).limit(100);document.getElementById('soinsPolList').innerHTML=_renderRows(data,[{key:'patient_nom',label:'Nom'},{key:'patient_prenom',label:'Prénom'},{key:'date_intervention',label:'Date',fmt:fmtDateTime},{key:'zone_police',label:'Zone'},{key:'numero_requisition',label:'Réquisition'}],'Aucune intervention');}
+
+function renderMortuaire(){return _renderSimpleModule({title:'Mortuaire',icon:'⚰️',desc:'Registre mortuaire.',openFn:'openMortModal',saveFn:'saveMort',listId:'mortList',modalId:'mortModal',formId:'mortForm',formHtml:_field('mtNom','Nom*')+_field('mtPrenom','Prénom*')+_field('mtNaiss','Date de naissance','date')+_field('mtDeces','Date du décès*','datetime-local')+_field('mtCause','Cause présumée')+_field('mtMedecin','Médecin constatant')+_field('mtNotes','Notes','textarea')});}
+function openMortModal(){document.getElementById('mortModal').style.display='flex';document.getElementById('mtDeces').value=new Date().toISOString().slice(0,16);}
+async function saveMort(){const p={created_by:_user.id,patient_nom:s(_val('mtNom')),patient_prenom:s(_val('mtPrenom')),date_naissance:_val('mtNaiss')||null,date_deces:_val('mtDeces')||new Date().toISOString(),cause:s(_val('mtCause')),medecin:s(_val('mtMedecin')),notes:s(_val('mtNotes'))};if(!p.patient_nom){toast('Nom requis','error');return;}const{error}=await sb.from('chlencodage_mortuaire').insert(p);if(error){toast('Erreur: '+error.message,'error');return;}_modalClose('mortModal');toast('✅ Enregistré','success');logAction('CREATE_MORTUAIRE','mortuaire',null,p);loadMortuaire();}
+async function loadMortuaire(){const{data}=await sb.from('chlencodage_mortuaire').select('*').order('created_at',{ascending:false}).limit(100);document.getElementById('mortList').innerHTML=_renderRows(data,[{key:'patient_nom',label:'Nom'},{key:'patient_prenom',label:'Prénom'},{key:'date_deces',label:'Décès',fmt:fmtDateTime},{key:'cause',label:'Cause'},{key:'medecin',label:'Médecin'}],'Aucun enregistrement');}
+
+function renderCertificats(){return _renderSimpleModule({title:'Certificats d\'invalidation de travail',icon:'📄',desc:'Certificats médicaux d\'incapacité.',openFn:'openCertModal',saveFn:'saveCert',listId:'certList',modalId:'certModal',formId:'certForm',formHtml:_field('ctNom','Nom*')+_field('ctPrenom','Prénom*')+_field('ctDateDeb','Début incapacité*','date')+_field('ctDateFin','Fin incapacité*','date')+_field('ctMotif','Motif*','textarea')+_field('ctMedecin','Médecin signataire')+_field('ctInami','N° INAMI')});}
+function openCertModal(){document.getElementById('certModal').style.display='flex';document.getElementById('ctDateDeb').value=new Date().toISOString().slice(0,10);}
+async function saveCert(){const p={created_by:_user.id,patient_nom:s(_val('ctNom')),patient_prenom:s(_val('ctPrenom')),date_debut:_val('ctDateDeb')||null,date_fin:_val('ctDateFin')||null,motif:s(_val('ctMotif')),medecin:s(_val('ctMedecin')),numero_inami:s(_val('ctInami'))};if(!p.patient_nom||!p.date_debut||!p.date_fin){toast('Champs requis manquants','error');return;}const{error}=await sb.from('chlencodage_certificats_travail').insert(p);if(error){toast('Erreur: '+error.message,'error');return;}_modalClose('certModal');toast('✅ Certificat enregistré','success');logAction('CREATE_CERT','certificats_travail',null,p);loadCertificats();}
+async function loadCertificats(){const{data}=await sb.from('chlencodage_certificats_travail').select('*').order('created_at',{ascending:false}).limit(100);document.getElementById('certList').innerHTML=_renderRows(data,[{key:'patient_nom',label:'Nom'},{key:'patient_prenom',label:'Prénom'},{key:'date_debut',label:'Début',fmt:fmtDate},{key:'date_fin',label:'Fin',fmt:fmtDate},{key:'medecin',label:'Médecin'}],'Aucun certificat');}
+
+// ================================================
+// PRISE DE SERVICE
+// ================================================
+function renderPriseService(){
+  return ''
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;"><div><h2 style="margin:0;color:var(--navy);">⏰ Prise de Service</h2><p style="margin:4px 0 0;color:var(--text2);font-size:.88em;">Pointez votre arrivée et votre départ.</p></div>'
+    +'<div style="display:flex;gap:10px;"><button class="btn btn-success" onclick="pdsCheckIn()">🟢 Prendre service</button><button class="btn btn-danger" onclick="pdsCheckOut()">🔴 Quitter service</button></div></div>'
+    +'<div id="pdsList" class="card" style="padding:0;overflow:hidden;"><div style="padding:40px;text-align:center;color:var(--text3);">⏳ Chargement…</div></div>';
+}
+async function pdsCheckIn(){const{error}=await sb.from('chlencodage_prises_de_service').insert({user_id:_user.id,heure_debut:new Date().toISOString(),service:_profile?.service||null});if(error){toast('Erreur: '+error.message,'error');return;}toast('🟢 Prise de service enregistrée','success');logAction('PDS_CHECKIN','prises_de_service',null,{});loadPriseService();}
+async function pdsCheckOut(){const{data}=await sb.from('chlencodage_prises_de_service').select('id').eq('user_id',_user.id).is('heure_fin',null).order('heure_debut',{ascending:false}).limit(1);if(!data||!data.length){toast('Aucun service en cours','error');return;}const{error}=await sb.from('chlencodage_prises_de_service').update({heure_fin:new Date().toISOString()}).eq('id',data[0].id);if(error){toast('Erreur: '+error.message,'error');return;}toast('🔴 Service terminé','success');logAction('PDS_CHECKOUT','prises_de_service',data[0].id,{});loadPriseService();}
+async function loadPriseService(){let q=sb.from('chlencodage_prises_de_service').select('*,chlencodage_profiles(nom,prenom)').order('heure_debut',{ascending:false}).limit(100);if(_profile?.role==='soignant')q=q.eq('user_id',_user.id);const{data}=await q;document.getElementById('pdsList').innerHTML=_renderRows(data,[{key:'chlencodage_profiles',label:'Soignant',fmt:function(p){return p?s((p.prenom||'')+' '+(p.nom||'')):'—';}},{key:'heure_debut',label:'Début',fmt:fmtDateTime},{key:'heure_fin',label:'Fin',fmt:function(v){return v?fmtDateTime(v):'<span class="badge badge-green">🟢 En cours</span>';}},{key:'service',label:'Service'}],'Aucune prise de service');}
+
+// ================================================
+// PATHOLOGIES
+// ================================================
+function renderPathologies(){
+  const isDir=_profile?.role==='direction';
+  return ''
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;"><div><h2 style="margin:0;color:var(--navy);">🦠 Liste des Pathologies</h2><p style="margin:4px 0 0;color:var(--text2);font-size:.88em;">Catégories et pathologies disponibles.</p></div>'
+    +(isDir?'<div style="display:flex;gap:10px;"><button class="btn btn-cyan" onclick="openPathCatModal()">+ Nouvelle catégorie</button><button class="btn btn-cyan" onclick="openPathModal()">+ Nouvelle pathologie</button></div>':'')+'</div>'
+    +'<div id="pathView" class="card" style="padding:18px;"><div style="text-align:center;color:var(--text3);">⏳ Chargement…</div></div>'
+    +(isDir?
+      '<div class="modal-overlay" id="pathCatModal" style="display:none;" onclick="if(event.target===this)_modalClose(\'pathCatModal\')"><div class="modal-box" style="max-width:520px;"><div class="modal-head"><h2>🗂️ Nouvelle catégorie</h2><button class="modal-close" onclick="_modalClose(\'pathCatModal\')">×</button></div><div class="modal-body"><form onsubmit="event.preventDefault();savePathCat()">'+_field('pcNom','Nom*')+_field('pcDesc','Description','textarea')+_field('pcCouleur','Couleur','color','value="#1a2f6b"')+_field('pcIcone','Icône (emoji)','text','value="🦠"')+'<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px;"><button type="button" class="btn btn-ghost" onclick="_modalClose(\'pathCatModal\')">Annuler</button><button type="submit" class="btn btn-cyan">💾 Enregistrer</button></div></form></div></div></div>'
+      +'<div class="modal-overlay" id="pathModal" style="display:none;" onclick="if(event.target===this)_modalClose(\'pathModal\')"><div class="modal-box" style="max-width:520px;"><div class="modal-head"><h2>🦠 Nouvelle pathologie</h2><button class="modal-close" onclick="_modalClose(\'pathModal\')">×</button></div><div class="modal-body"><form onsubmit="event.preventDefault();savePath()"><div class="form-group"><label>Catégorie*</label><select id="pPathCat" class="form-control" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--input-bg);"></select></div>'+_field('pPathNom','Nom*')+_field('pPathDesc','Description','textarea')+_field('pPathCode','Code CIM-10')+'<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px;"><button type="button" class="btn btn-ghost" onclick="_modalClose(\'pathModal\')">Annuler</button><button type="submit" class="btn btn-cyan">💾 Enregistrer</button></div></form></div></div></div>'
+    :'');
+}
+async function loadPathologiesView(){
+  const[{data:cats},{data:paths}]=await Promise.all([
+    sb.from('chlencodage_pathology_categories').select('*').order('ordre',{ascending:true}),
+    sb.from('chlencodage_pathologies').select('*').order('nom',{ascending:true})
+  ]);
+  _categories=cats||[];_allPathologies=paths||[];
+  const sel=document.getElementById('pPathCat');
+  if(sel)sel.innerHTML=_categories.map(function(c){return'<option value="'+c.id+'">'+s(c.nom)+'</option>';}).join('');
+  const isDir=_profile?.role==='direction';
+  if(!_categories.length){document.getElementById('pathView').innerHTML='<div class="empty-state"><div class="es-icon">🗂️</div><p>Aucune catégorie.'+(isDir?' Créez-en une.':'')+'</p></div>';return;}
+  let h='';
+  _categories.forEach(function(c){
+    const pths=_allPathologies.filter(function(p){return p.category_id===c.id;});
+    h+='<div style="margin-bottom:18px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;">'
+      +'<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:'+s(c.couleur||'#1a2f6b')+';color:#fff;">'
+      +'<span style="font-size:1.4em;">'+s(c.icone||'🦠')+'</span><strong style="flex:1;">'+s(c.nom)+'</strong>'
+      +'<span style="font-size:.78em;opacity:.85;">'+pths.length+' pathologie(s)</span>'
+      +(isDir?'<button class="btn btn-sm btn-danger" onclick="deletePathCat(\''+c.id+'\')">🗑️</button>':'')
+      +'</div>';
+    if(c.description)h+='<div style="padding:8px 16px;font-size:.82em;color:var(--text2);background:var(--bg2);">'+s(c.description)+'</div>';
+    if(pths.length){h+='<div style="padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px;">';pths.forEach(function(p){h+='<span style="display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--border);padding:6px 12px;border-radius:14px;font-size:.85em;">'+s(p.nom)+(p.code_cim10?' <code style="font-size:.75em;color:var(--text3);">'+s(p.code_cim10)+'</code>':'')+(isDir?' <button onclick="deletePath(\''+p.id+'\')" style="border:none;background:transparent;color:var(--danger);cursor:pointer;font-weight:700;">×</button>':'')+'</span>';});h+='</div>';}
+    else h+='<div style="padding:14px 16px;color:var(--text3);font-style:italic;font-size:.85em;">Aucune pathologie dans cette catégorie</div>';
+    h+='</div>';
+  });
+  document.getElementById('pathView').innerHTML=h;
+}
+function openPathCatModal(){document.getElementById('pathCatModal').style.display='flex';}
+function openPathModal(){if(!_categories.length){toast('Créez d\'abord une catégorie','error');return;}document.getElementById('pathModal').style.display='flex';}
+async function savePathCat(){const p={nom:s(_val('pcNom')),description:s(_val('pcDesc')),couleur:_val('pcCouleur')||'#1a2f6b',icone:_val('pcIcone')||'🦠',created_by:_user.id};if(!p.nom){toast('Nom requis','error');return;}const{error}=await sb.from('chlencodage_pathology_categories').insert(p);if(error){toast('Erreur: '+error.message,'error');return;}_modalClose('pathCatModal');toast('✅ Catégorie créée','success');logAction('CREATE_PATH_CAT','pathology_categories',null,p);loadPathologiesView();loadPathologies();}
+async function savePath(){const p={category_id:_val('pPathCat'),nom:s(_val('pPathNom')),description:s(_val('pPathDesc')),code_cim10:s(_val('pPathCode')),created_by:_user.id};if(!p.nom||!p.category_id){toast('Champs requis manquants','error');return;}const{error}=await sb.from('chlencodage_pathologies').insert(p);if(error){toast('Erreur: '+error.message,'error');return;}_modalClose('pathModal');toast('✅ Pathologie créée','success');logAction('CREATE_PATH','pathologies',null,p);loadPathologiesView();loadPathologies();}
+async function deletePathCat(id){if(!confirm('Supprimer cette catégorie et toutes ses pathologies ?'))return;const{error}=await sb.from('chlencodage_pathology_categories').delete().eq('id',id);if(error){toast('Erreur: '+error.message,'error');return;}toast('Catégorie supprimée','success');loadPathologiesView();loadPathologies();}
+async function deletePath(id){if(!confirm('Supprimer cette pathologie ?'))return;const{error}=await sb.from('chlencodage_pathologies').delete().eq('id',id);if(error){toast('Erreur: '+error.message,'error');return;}toast('Supprimée','success');loadPathologiesView();loadPathologies();}
+
+// ================================================
+// PROTOCOLES
+// ================================================
+function renderProtocoles(){
+  const canEdit=_profile?.role==='direction';
+  return ''
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;"><div><h2 style="margin:0;color:var(--navy);">📋 Protocoles de Soins</h2><p style="margin:4px 0 0;color:var(--text2);font-size:.88em;">Documentation clinique de référence.</p></div>'
+    +(canEdit?'<button class="btn btn-cyan" onclick="openProtoModal()">+ Nouveau protocole</button>':'')+'</div>'
+    +'<div id="protoList" class="card" style="padding:18px;"><div style="text-align:center;color:var(--text3);">⏳ Chargement…</div></div>'
+    +(canEdit?'<div class="modal-overlay" id="protoModal" style="display:none;" onclick="if(event.target===this)_modalClose(\'protoModal\')"><div class="modal-box" style="max-width:680px;"><div class="modal-head"><h2>📋 Nouveau protocole</h2><button class="modal-close" onclick="_modalClose(\'protoModal\')">×</button></div><div class="modal-body"><form onsubmit="event.preventDefault();saveProto()">'+_field('prTitre','Titre*')+_field('prCat','Catégorie')+_field('prContenu','Contenu*','textarea','rows="8"')+'<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px;"><button type="button" class="btn btn-ghost" onclick="_modalClose(\'protoModal\')">Annuler</button><button type="submit" class="btn btn-cyan">💾 Enregistrer</button></div></form></div></div></div>':'');
+}
+function openProtoModal(){document.getElementById('protoModal').style.display='flex';}
+async function saveProto(){const p={titre:s(_val('prTitre')),categorie:s(_val('prCat')),contenu:s(_val('prContenu')),created_by:_user.id};if(!p.titre||!p.contenu){toast('Champs requis manquants','error');return;}const{error}=await sb.from('chlencodage_protocoles_soins').insert(p);if(error){toast('Erreur: '+error.message,'error');return;}_modalClose('protoModal');toast('✅ Protocole créé','success');loadProtocoles();}
+async function loadProtocoles(){const{data}=await sb.from('chlencodage_protocoles_soins').select('*').order('titre',{ascending:true});if(!data||!data.length){document.getElementById('protoList').innerHTML='<div class="empty-state"><div class="es-icon">📋</div><p>Aucun protocole</p></div>';return;}document.getElementById('protoList').innerHTML=data.map(function(p){return'<details style="border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:10px;padding:10px 14px;"><summary style="cursor:pointer;font-weight:700;color:var(--navy);">'+s(p.titre)+(p.categorie?' <span style="font-size:.78em;color:var(--text3);font-weight:400;">— '+s(p.categorie)+'</span>':'')+'</summary><div style="margin-top:10px;white-space:pre-wrap;color:var(--text2);font-size:.92em;">'+s(p.contenu||'')+'</div></details>';}).join('');}
+
+// ================================================
+// TARIFS
+// ================================================
+function renderTarifs(){
+  const canEdit=_profile?.role==='direction';
+  return ''
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;"><div><h2 style="margin:0;color:var(--navy);">💰 Tarifs</h2><p style="margin:4px 0 0;color:var(--text2);font-size:.88em;">Grille tarifaire des actes et prestations.</p></div>'
+    +(canEdit?'<button class="btn btn-cyan" onclick="openTarifModal()">+ Nouveau tarif</button>':'')+'</div>'
+    +'<div id="tarifList" class="card" style="padding:0;overflow:hidden;"><div style="padding:40px;text-align:center;color:var(--text3);">⏳ Chargement…</div></div>'
+    +(canEdit?'<div class="modal-overlay" id="tarifModal" style="display:none;" onclick="if(event.target===this)_modalClose(\'tarifModal\')"><div class="modal-box" style="max-width:520px;"><div class="modal-head"><h2>💰 Nouveau tarif</h2><button class="modal-close" onclick="_modalClose(\'tarifModal\')">×</button></div><div class="modal-body"><form onsubmit="event.preventDefault();saveTarif()">'+_field('tfNom','Nom*')+_field('tfCat','Catégorie')+_field('tfPrix','Prix (€)*','number','step="0.01" min="0"')+_field('tfUnite','Unité','text','placeholder="acte / jour / nuit"')+'<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:14px;"><button type="button" class="btn btn-ghost" onclick="_modalClose(\'tarifModal\')">Annuler</button><button type="submit" class="btn btn-cyan">💾 Enregistrer</button></div></form></div></div></div>':'');
+}
+function openTarifModal(){document.getElementById('tarifModal').style.display='flex';}
+async function saveTarif(){const p={nom:s(_val('tfNom')),categorie:s(_val('tfCat')),prix:parseFloat(_val('tfPrix'))||0,unite:s(_val('tfUnite'))||'acte',created_by:_user.id};if(!p.nom){toast('Nom requis','error');return;}const{error}=await sb.from('chlencodage_tarifs').insert(p);if(error){toast('Erreur: '+error.message,'error');return;}_modalClose('tarifModal');toast('✅ Tarif créé','success');loadTarifs();}
+async function loadTarifs(){const{data}=await sb.from('chlencodage_tarifs').select('*').order('categorie',{ascending:true});document.getElementById('tarifList').innerHTML=_renderRows(data,[{key:'nom',label:'Prestation'},{key:'categorie',label:'Catégorie'},{key:'prix',label:'Prix',fmt:function(v){return'<strong>'+Number(v||0).toFixed(2)+' €</strong>';}},{key:'unite',label:'Unité'}],'Aucun tarif');}
+
+// ================================================
+// DOSSIERS MÉDICAUX
+// ================================================
+function renderDossiers(){
+  return ''
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;"><div><h2 style="margin:0;color:var(--navy);">🗂️ Dossiers Médicaux</h2><p style="margin:4px 0 0;color:var(--text2);font-size:.88em;">Toutes les fiches regroupées par patient.</p></div>'
+    +'<input type="search" id="dossierSearch" placeholder="🔍 Rechercher Nom Prénom…" style="padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);min-width:280px;background:var(--card);color:var(--text);" oninput="filterDossiers()"></div>'
+    +'<div id="dossierList" class="card" style="padding:18px;"><div style="text-align:center;color:var(--text3);">⏳ Chargement…</div></div>';
+}
+let _dossiersCache=[];
+async function loadDossiers(){
+  const{data,error}=await sb.from('chlencodage_fiches_patients').select('id,patient_nom,patient_prenom,date_naissance,statut,created_at,urgence').order('patient_nom',{ascending:true}).limit(500);
+  if(error){document.getElementById('dossierList').innerHTML='<div class="empty-state"><div class="es-icon">⚠️</div><p>Erreur: '+s(error.message)+'</p></div>';return;}
+  const groups={};
+  (data||[]).forEach(function(f){const k=(f.patient_nom||'?').toUpperCase()+'|'+(f.patient_prenom||'').toUpperCase();if(!groups[k])groups[k]={nom:f.patient_nom,prenom:f.patient_prenom,date_naissance:f.date_naissance,fiches:[]};groups[k].fiches.push(f);});
+  _dossiersCache=Object.values(groups);renderDossiersList(_dossiersCache);
+}
+function filterDossiers(){const q=(document.getElementById('dossierSearch')?.value||'').toLowerCase().trim();const filtered=q?_dossiersCache.filter(function(g){return((g.nom||'')+' '+(g.prenom||'')).toLowerCase().includes(q);}):_dossiersCache;renderDossiersList(filtered);}
+function renderDossiersList(groups){
+  const el=document.getElementById('dossierList');
+  if(!groups.length){el.innerHTML='<div class="empty-state"><div class="es-icon">🗂️</div><p>Aucun dossier</p></div>';return;}
+  const stMap={brouillon:'badge-blue',soumis:'badge-orange',valide:'badge-green',refuse:'badge-red'};
+  el.innerHTML=groups.map(function(g){
+    const fiches=g.fiches.sort(function(a,b){return(b.created_at||'').localeCompare(a.created_at||'');});
+    return'<details style="border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:10px;padding:12px 16px;background:var(--bg2);"><summary style="cursor:pointer;display:flex;align-items:center;gap:12px;flex-wrap:wrap;"><strong style="color:var(--navy);font-size:1.05em;">'+s(g.nom||'?')+' '+s(g.prenom||'')+'</strong><span style="font-size:.78em;color:var(--text3);">'+(g.date_naissance?'né(e) le '+fmtDate(g.date_naissance):'')+'</span><span style="margin-left:auto;font-size:.78em;background:var(--navy);color:#fff;padding:3px 10px;border-radius:10px;">'+fiches.length+' fiche(s)</span></summary><div style="margin-top:12px;display:flex;flex-direction:column;gap:6px;">'
+      +fiches.map(function(f){return'<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#fff;border-radius:var(--radius-sm);"><span class="badge '+(stMap[f.statut]||'')+'">'+s(f.statut||'')+'</span>'+(f.urgence?'<span class="badge badge-red">'+s(f.urgence)+'</span>':'')+'<span style="font-size:.85em;color:var(--text2);">'+fmtDateTime(f.created_at)+'</span><button class="btn btn-sm btn-cyan" style="margin-left:auto;" onclick="viewFiche(\''+f.id+'\')">👁️ Voir</button></div>';}).join('')
+      +'</div></details>';
+  }).join('');
+}
+
+// ================================================
+// COMPTE
+// ================================================
+function renderCompte(){
+  if(!_profile)return'<div class="empty-state"><div class="es-icon">⚠️</div><p>Profil non chargé</p></div>';
+  const rLabels={soignant:'🩺 Soignant',supervision:'👁️ Supervision',direction:'⚙️ Direction'};
+  return ''
+    +'<div class="card" style="padding:24px;max-width:680px;">'
+    +'<div style="display:flex;align-items:center;gap:18px;margin-bottom:24px;"><div class="user-avatar" style="width:70px;height:70px;font-size:1.6em;">'+s(((_profile.prenom||'').charAt(0)+(_profile.nom||'').charAt(0)).toUpperCase()||'?')+'</div><div><h2 style="margin:0;color:var(--navy);">'+s(_profile.prenom||'')+' '+s(_profile.nom||'')+'</h2><span class="role-pill role-'+s(_profile.role)+'">'+s(rLabels[_profile.role]||_profile.role)+'</span></div></div>'
+    +'<div class="modal-grid">'
+    +'<div class="modal-field"><div class="lbl">Email</div><div class="val">'+s(_user?.email||'—')+'</div></div>'
+    +'<div class="modal-field"><div class="lbl">Matricule</div><div class="val">'+s(_profile.matricule||'—')+'</div></div>'
+    +'<div class="modal-field"><div class="lbl">Service</div><div class="val">'+s(_profile.service||'—')+'</div></div>'
+    +'<div class="modal-field"><div class="lbl">Téléphone</div><div class="val">'+s(_profile.telephone||'—')+'</div></div>'
+    +'<div class="modal-field"><div class="lbl">Statut</div><div class="val">'+(_profile.actif?'<span class="badge badge-green">✅ Actif</span>':'<span class="badge badge-red">❌ Inactif</span>')+'</div></div>'
+    +'<div class="modal-field"><div class="lbl">Compte créé le</div><div class="val">'+fmtDateTime(_profile.created_at)+'</div></div>'
+    +'</div>'
+    +'<div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;"><button class="btn btn-cyan" onclick="doForgotFromAccount()">🔑 Changer mon mot de passe</button><button class="btn btn-danger" onclick="doLogout()">🚪 Déconnexion</button></div>'
+    +'</div>';
+}
+async function doForgotFromAccount(){
+  if(!_user?.id)return;
+  const op=prompt('Ancien mot de passe :');if(!op)return;
+  const{data:cur}=await sb.from('chlencodage_profiles').select('password').eq('id',_user.id).single();
+  if(!cur||cur.password!==op){toast('Ancien mot de passe incorrect','error');return;}
+  const np=prompt('Nouveau mot de passe (8 caractères min) :');
+  if(!np||np.length<8){toast('Annulé ou trop court','error');return;}
+  const{error}=await sb.from('chlencodage_profiles').update({password:np,updated_at:new Date().toISOString()}).eq('id',_user.id);
+  if(error){toast('Erreur: '+error.message,'error');return;}
+  toast('🔑 Mot de passe mis à jour','success');
+}
+
+// ================================================
+// LOGS
+// ================================================
+function renderLogs(){
+  return ''
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;"><div><h2 style="margin:0;color:var(--navy);">📊 Logs d\'activité</h2><p style="margin:4px 0 0;color:var(--text2);font-size:.88em;">Traçabilité des actions.</p></div>'
+    +'<button class="btn" onclick="loadLogs()">🔄 Actualiser</button></div>'
+    +'<div id="logsList" class="card" style="padding:0;overflow:hidden;"><div style="padding:40px;text-align:center;color:var(--text3);">⏳ Chargement…</div></div>';
+}
+async function loadLogs(){
+  const{data,error}=await sb.from('chlencodage_app_logs').select('*,chlencodage_profiles(nom,prenom,role)').order('created_at',{ascending:false}).limit(300);
+  if(error){document.getElementById('logsList').innerHTML='<div class="empty-state"><div class="es-icon">🔒</div><p>'+s(error.message)+'</p></div>';return;}
+  document.getElementById('logsList').innerHTML=_renderRows(data,[
+    {key:'created_at',label:'Date',fmt:fmtDateTime},
+    {key:'chlencodage_profiles',label:'Utilisateur',fmt:function(p){return p?s((p.prenom||'')+' '+(p.nom||'')+' ('+(p.role||')')+')'):'<em>—</em>';}},
+    {key:'action',label:'Action',fmt:function(v){return'<code style="font-size:.78em;background:var(--bg2);padding:2px 8px;border-radius:4px;">'+s(v||'')+'</code>';}},
+    {key:'module',label:'Module'},
+    {key:'entity_id',label:'Cible',fmt:function(v){return v?'<code style="font-size:.72em;color:var(--text3);">'+s(String(v).slice(0,8))+'…</code>':'—';}}
+  ],'Aucun log');
+}
+
+// ================================================
+// ADMIN
+// ================================================
+function renderAdmin(){
+  return ''
+    +'<div style="margin-bottom:18px;"><h2 style="margin:0;color:var(--navy);">⚙️ Administration</h2><p style="margin:4px 0 0;color:var(--text2);font-size:.88em;">Gestion des utilisateurs et paramètres.</p></div>'
+    +'<div class="card" style="padding:18px;margin-bottom:18px;"><h3 style="margin-top:0;color:var(--navy);">➕ Créer un utilisateur</h3>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:10px;">'
+    +'<input id="nuPrenom" placeholder="Prénom" class="input">'
+    +'<input id="nuNom" placeholder="Nom" class="input">'
+    +'<input id="nuEmail" type="email" placeholder="Email" class="input">'
+    +'<input id="nuPass" type="text" placeholder="Mot de passe (min 8)" class="input">'
+    +'<select id="nuRole" class="input"><option value="soignant">🩺 Soignant</option><option value="supervision">👁️ Supervision</option><option value="direction">⚙️ Direction</option></select>'
+    +'<input id="nuMatricule" placeholder="Matricule" class="input">'
+    +'<input id="nuService" placeholder="Service" class="input">'
+    +'<input id="nuTel" placeholder="Téléphone" class="input">'
+    +'</div>'
+    +'<div style="margin-top:12px;"><button class="btn btn-cyan" onclick="createUser()">✅ Créer le compte</button></div></div>'
+    +'<div class="card" style="padding:18px;margin-bottom:18px;"><h3 style="margin-top:0;color:var(--navy);">👥 Utilisateurs</h3><div id="adminUsersList"><div style="text-align:center;color:var(--text3);padding:20px;">⏳</div></div></div>'
+    +'<div class="card" style="padding:18px;"><h3 style="margin-top:0;color:var(--navy);">📈 Statistiques globales</h3><div id="adminStats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;"><div style="text-align:center;color:var(--text3);padding:20px;">⏳</div></div></div>';
+}
+async function loadAdmin(){
+  const{data:users}=await sb.from('chlencodage_profiles').select('id,email,nom,prenom,role,matricule,service,telephone,actif,created_at').order('created_at',{ascending:false});
+  const rLabels={soignant:'🩺 Soignant',supervision:'👁️ Supervision',direction:'⚙️ Direction'};
+  const rolesOpts=['soignant','supervision','direction'];
+  document.getElementById('adminUsersList').innerHTML=_renderRows(users,[
+    {key:'prenom',label:'Prénom'},{key:'nom',label:'Nom'},{key:'email',label:'Email'},
+    {key:'role',label:'Rôle',fmt:function(v,r){return'<select onchange="changeUserRole(\''+r.id+'\',this.value)" '+(r.id===_user.id?'disabled':'')+' style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--input-bg);color:var(--text);">'+rolesOpts.map(function(o){return'<option value="'+o+'" '+(v===o?'selected':'')+'>'+s(rLabels[o])+'</option>';}).join('')+'</select>';}},
+    {key:'actif',label:'Actif',fmt:function(v,r){return'<button class="btn btn-sm '+(v?'btn-success':'btn-danger')+'" onclick="toggleUserActif(\''+r.id+'\','+(!v)+')" '+(r.id===_user.id?'disabled':'')+'>'+(v?'✅':'❌')+'</button>';}},
+    {key:'id',label:'Mot de passe',fmt:function(v){return'<button class="btn btn-sm" onclick="resetUserPass(\''+v+'\')">🔑</button>';}},
+    {key:'created_at',label:'Créé',fmt:fmtDate}
+  ],'Aucun utilisateur');
+  const tables=[['chlencodage_fiches_patients','Fiches'],['chlencodage_refus_soins','Refus'],['chlencodage_impayes','Impayés'],['chlencodage_mortuaire','Mortuaire'],['chlencodage_certificats_travail','Certificats'],['chlencodage_app_logs','Logs']];
+  const stats=await Promise.all(tables.map(function(t){return sb.from(t[0]).select('id',{count:'exact',head:true}).then(function(r){return{label:t[1],count:r.count||0};});}));
+  document.getElementById('adminStats').innerHTML=stats.map(function(st){return'<div style="background:var(--bg2);padding:18px;border-radius:var(--radius-sm);text-align:center;"><div style="font-size:2em;font-weight:800;color:var(--navy);">'+st.count+'</div><div style="font-size:.78em;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;">'+s(st.label)+'</div></div>';}).join('');
+}
+async function createUser(){
+  const v=function(id){return(document.getElementById(id)?.value||'').trim();};
+  const email=v('nuEmail').toLowerCase(),password=v('nuPass'),nom=v('nuNom'),prenom=v('nuPrenom'),role=v('nuRole')||'soignant';
+  if(!email||!password){toast('Email et mot de passe requis','error');return;}
+  if(password.length<8){toast('Mot de passe : 8 caractères minimum','error');return;}
+  const payload={email:email,password:password,nom:nom,prenom:prenom,role:role,matricule:v('nuMatricule')||null,service:v('nuService')||null,telephone:v('nuTel')||null,actif:true};
+  const{data,error}=await sb.from('chlencodage_profiles').insert(payload).select('id').single();
+  if(error){toast('Erreur: '+error.message,'error');return;}
+  toast('✅ Compte créé','success');logAction('ADMIN_CREATE_USER','profiles',data.id,{email:email,role:role});
+  ['nuPrenom','nuNom','nuEmail','nuPass','nuMatricule','nuService','nuTel'].forEach(function(id){const el=document.getElementById(id);if(el)el.value='';});
+  loadAdmin();
+}
+async function resetUserPass(id){
+  const np=prompt('Nouveau mot de passe (8 caractères min) :');
+  if(!np||np.length<8){toast('Annulé ou trop court','error');return;}
+  const{error}=await sb.from('chlencodage_profiles').update({password:np,updated_at:new Date().toISOString()}).eq('id',id);
+  if(error){toast('Erreur: '+error.message,'error');return;}
+  toast('🔑 Mot de passe réinitialisé','success');
+}
+async function changeUserRole(id,role){
+  const{error}=await sb.from('chlencodage_profiles').update({role:role}).eq('id',id);
+  if(error){toast('Erreur: '+error.message,'error');return;}
+  toast('✅ Rôle mis à jour','success');
+}
+async function toggleUserActif(id,actif){
+  const{error}=await sb.from('chlencodage_profiles').update({actif:actif}).eq('id',id);
+  if(error){toast('Erreur: '+error.message,'error');return;}
+  toast('✅ Statut mis à jour','success');loadAdmin();
+}
+
+// ================================================
+// BOOT — DOMContentLoaded
+// BUG FIX #10 : loginPwd → loginPass
+// ================================================
+document.addEventListener('DOMContentLoaded',function(){
+  setTimeout(function(){const ls=document.getElementById('loadingScreen');if(ls)ls.style.display='none';},800);
+
+  // BUG FIX #10 : 'loginPass' (pas 'loginPwd')
+  ['loginEmail','loginPass','loginCaptchaA'].forEach(function(id){
+    const el=document.getElementById(id);
+    if(el)el.addEventListener('keypress',function(e){if(e.key==='Enter'){e.preventDefault();doLogin();}});
+  });
+
+  if(localStorage.getItem('chl_dark')==='1'){document.body.classList.add('dark-mode');const b=document.getElementById('darkToggleBtn');if(b)b.textContent='☀️';}
+
+  try{genLoginCaptcha();}catch(e){}
+
+  // Restauration de session
+  (async function(){
+    const p=readSession();
+    if(p&&p.actif!==false){
+      _profile=p;_user={id:p.id,email:p.email};
+      await bootApp();
+    }else{
+      const gate=document.getElementById('authGate');if(gate)gate.classList.add('show');
+    }
+  })();
+});
+</script>
+</body>
+</html>
