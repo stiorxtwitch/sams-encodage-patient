@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CHL — Centre Hospitalier de Liège</title>
+<title>SAMS — San Andreas Medical Service</title>
 <script>
 window.CHL_CONFIG = window.CHL_CONFIG || {
   supabase:{
@@ -321,7 +321,7 @@ input[type="checkbox"],input[type="radio"]{width:17px;height:17px;accent-color:v
       <div id="lockoutBar" class="lockout-bar"></div>
       <div id="loginError" class="auth-error">⛔ <span id="loginErrorMsg"></span></div>
       <div id="loginSuccess" class="auth-success">✅ <span id="loginSuccessMsg"></span></div>
-      <div class="auth-field"><label>E-mail</label><input type="email" id="loginEmail" autocomplete="email" placeholder="votre@chl.be"></div>
+      <div class="auth-field"><label>E-mail</label><input type="email" id="loginEmail" autocomplete="email" placeholder="votre@sams.us"></div>
       <div class="auth-field"><label>Mot de passe</label><input type="password" id="loginPass" autocomplete="current-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
       <div class="auth-captcha">
         <span class="auth-captcha-q" id="loginCaptchaQ"></span>
@@ -336,7 +336,7 @@ input[type="checkbox"],input[type="radio"]{width:17px;height:17px;accent-color:v
     <div id="forgotView" class="auth-view">
       <div id="forgotSuccess" class="auth-success">✅ <span id="forgotSuccessMsg"></span></div>
       <p style="color:rgba(255,255,255,.4);font-size:.85em;margin-bottom:16px;">Entrez votre e-mail pour contacter la Direction.</p>
-      <div class="auth-field"><label>E-mail</label><input type="email" id="forgotEmail" placeholder="votre@chl.be"></div>
+      <div class="auth-field"><label>E-mail</label><input type="email" id="forgotEmail" placeholder="votre@sams.us"></div>
       <button class="btn-auth" onclick="doForgot()">📧 Envoyer la demande</button>
       <div class="auth-links"><a onclick="switchAuthView('login')">← Retour à la connexion</a></div>
     </div>
@@ -410,7 +410,7 @@ input[type="checkbox"],input[type="radio"]{width:17px;height:17px;accent-color:v
   <div class="sidebar" id="sidebar">
     <div class="sidebar-brand">
       <svg width="36" height="36" viewBox="0 0 200 200" fill="none" style="flex-shrink:0"><path d="M 158 22 A 78 78 0 1 0 158 178" stroke="white" stroke-width="22" fill="none" stroke-linecap="round"/><line x1="159" y1="22" x2="159" y2="178" stroke="white" stroke-width="22" stroke-linecap="round"/><line x1="86" y1="42" x2="86" y2="158" stroke="#00c2d4" stroke-width="16" stroke-linecap="round"/><line x1="128" y1="42" x2="128" y2="158" stroke="#00c2d4" stroke-width="16" stroke-linecap="round"/><line x1="86" y1="100" x2="128" y2="100" stroke="#00c2d4" stroke-width="16" stroke-linecap="round"/></svg>
-      <div class="sidebar-brand-text"><h2>CHL</h2><p>Centre Hospitalier de Liège</p></div>
+      <div class="sidebar-brand-text"><h2>SAMS</h2><p>San Andreas Medical Service</p></div>
     </div>
     <nav class="sidebar-nav" id="sidebarNav">
       <div class="nav-section-label">Principal</div>
@@ -449,7 +449,7 @@ input[type="checkbox"],input[type="radio"]{width:17px;height:17px;accent-color:v
     <div class="topbar">
       <div class="topbar-left">
         <button class="topbar-btn" onclick="toggleSidebar()">☰</button>
-        <div><div class="page-title" id="pageTitle">Tableau de bord</div><div class="page-breadcrumb" id="pageBreadcrumb">CHL — Système hospitalier</div></div>
+        <div><div class="page-title" id="pageTitle">Tableau de bord</div><div class="page-breadcrumb" id="pageBreadcrumb">SAMS — Système hospitalier</div></div>
       </div>
       <div class="topbar-right">
         <div class="online-badge" id="onlineStatusBadge"><div class="online-dot"></div> En ligne</div>
